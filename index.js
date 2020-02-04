@@ -20,7 +20,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-const path = __dirname;
+//const path = __dirname;
+const path = "/etc/nibepi"
 const startCore = require('./lib/startCore')
 const stopCore = require('./lib/stopCore');
 var log = require('./log');
@@ -38,13 +39,19 @@ const regQueue = [];
 var pumpModel = require('./lib/models.json')
 const EventEmitter = require('events').EventEmitter
 const nibeEmit = new EventEmitter();
+const fs = require('fs');
+if (!fs.existsSync("/etc/nibepi")) {
+    exec(`sudo mount -o remount,rw / && sudo mkdir /etc/nibepi && sudo chown ${process.env.USER}:${process.env.USER} /etc/nibepi`, function(error, stdout, stderr) {
+        console.log('Configuration directory created /etc/nibepi');
+    });
+}
 function requireF(modulePath){ // force require
     try {
      return require(modulePath);
     }
     catch (e) {
      console.log('Config file not found, loading default.');
-     return require(path+'/default.json');
+     return require(__dirname+'/default.json');
     }
 }
 let config = requireF(path+'/config.json');
@@ -65,7 +72,7 @@ const updateConfig = (data) => {
         }
     })
     nibeEmit.emit('config',config);
-    const fs = require('fs');
+   
     let run = false;
     if(timer!==undefined && timer._idleTimeout>0) {
         clearTimeout(timer);
@@ -84,6 +91,7 @@ const updateConfig = (data) => {
                             log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
                             return(false);
                         } else {
+                            
                             fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
                                 if(err) return (false);
                                 log(config.log.enable,"Config file saved",config.log['info'],"Config");
