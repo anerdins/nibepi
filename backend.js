@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 const version = "1.1.0";
-console.log('Backend')
 /*var exec = require('child_process').exec;
 exec(`sudo chrt -a -f -p 99 ${process.pid}`, function(error, stdout, stderr) {
     if(error) {

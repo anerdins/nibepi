@@ -1016,6 +1016,7 @@ const updateSensors = () => {
     if(mqtt_client!==undefined && mqtt_client.connected===true) {
         for (const arr of mqtt_subcribers) {
             mqtt_client.subscribe(arr);
+            nibeEmit.emit('updateSensor',true);
         }
     }
 }
@@ -1034,6 +1035,7 @@ const removeSensor = (data) => {
             delete mqttData[mqttRemove];
             updateConfig(config);
             mqtt_client.unsubscribe(data.register);
+            nibeEmit.emit('updateSensor',true);
         }
     }
 }
