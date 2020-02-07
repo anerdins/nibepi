@@ -680,15 +680,15 @@ const decodeMessage = (buf) => {
             if (register[index].size == "s32") {
                 if (buf[3]===104) {
                     data = buf[i + 2] | buf[i + 3]<<8 | buf[i + 6] <<16 | buf[i + 7] <<24;
-                    if (data >= 32768) {
-                        data = data - 65536;
+                    if (data >= 2147483647) {
+                        data = (data - 4294967294);
                     }
                     i = i + 7;
                 }
                 else {
-                    data = buf[i + 2] | buf[i + 3] <<8 | buf[i + 4] <<16 | buf[i + 5] <<24;
-                    if (data >= 32768) {
-                        data = (data - 65536);
+                    data = buf[i + 4] | buf[i + 5] <<8 | buf[i + 2] <<16 | buf[i + 3] <<24;
+                    if (data >= 2147483647) {
+                        data = (data - 4294967294);
                     }
                     i = i + 5;
                 }
@@ -751,7 +751,8 @@ const decodeMessage = (buf) => {
             if (min !== undefined && max !== undefined) {
                 if (min !== 0 || max !== 0) {
                     if ((data > max / register[index].factor) || (data < min / register[index].factor)) {
-                        log(`Corrupt payload (${data}) from register ${address}\nRAW: ${JSON.stringify(buf)}`,config.log['error'],"Data");
+                        nibeEmit.emit('fault',{from:"Datahantering",message:'Korrut värde från register '+address+", Värde: "+data+register[index].unit});
+                        log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['error'],"CORRUPT");
                         corruptData = true;
                     }
                 }
