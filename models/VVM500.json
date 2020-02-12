@@ -182,7 +182,12 @@
 {"register":"41772","factor":10,"size":"s16","mode":"R","titel":"EB101-EP14 Alarm condensor in level","info":"Alarm condensor in level","unit":"°C","min":"0","max":"0"},
 {"register":"41773","factor":10,"size":"s16","mode":"R","titel":"EB101-EP14 Alarm condensor out level","info":"Alarm condensor out level","unit":"°C","min":"0","max":"0"},
 {"register":"41928","factor":100,"size":"u16","mode":"R","titel":"Smart Price Adaption Price","info":"The current electric price","unit":"","min":"0","max":"0"},
-{"register":"41929","factor":1,"size":"u8","mode":"R","titel":"Smart Price Adaption Price Level","info":"Whether the current price is unknown (0), low (1), medium (2), high (3)","unit":"","min":"0","max":"0"},
+{"register":"41929","factor":1,"size":"u8","mode":"R","titel":"Smart Price Adaption Price Level","info":"Whether the current price is unknown (0), low (1), medium (2), high (3)","unit":"","min":"0","max":"0","map":[
+    {"0":"UNKNOWN"},
+    {"1":"CHEAP"},
+    {"2":"NORMAL"},
+    {"3":"EXPENSIVE"}
+]},
 {"register":"41930","factor":1,"size":"u16","mode":"R","titel":"AA23-BE5 Power 10","info":"","unit":"W","min":"0","max":"0"},
 {"register":"41931","factor":1,"size":"u16","mode":"R","titel":"AA23-BE5 Power 9","info":"","unit":"W","min":"0","max":"0"},
 {"register":"41932","factor":1,"size":"u16","mode":"R","titel":"AA23-BE5 Power 8","info":"","unit":"W","min":"0","max":"0"},
