@@ -262,6 +262,26 @@ async function getDataPromise(address) {
     const promise = new Promise((resolve,reject) => {
     let index = register.findIndex(index => index.register == address);
     if(index!==-1) {
+        getTimer[address] = setTimeout((address) => {
+            getTimer[address] = setTimeout((address) => {
+                nibeEmit.removeAllListeners(address);
+                reject(new Error('Register ('+address+') no respond'));
+            }, 15000, address);
+            register[index].logset = false;
+            var data = [];
+            data[0] = 0xc0;
+            data[1] = 0x69;
+            data[2] = 0x02;
+            data[3] = (address & 0xFF);
+            data[4] = ((address >> 8) & 0xFF);
+            data[5] = Calc_CRC(data);
+            nibeEmit.removeAllListeners(address);
+            nibeEmit.once(address,(data) => {
+                clearTimeout(getTimer[data.register]);
+                resolve(data);
+            })
+            core.send({type:"reqData",data:data});
+        }, 7000, address);
         if(register[index].logset===undefined || register[index].logset===false) {
             var data = [];
             data[0] = 0xc0;
@@ -270,33 +290,12 @@ async function getDataPromise(address) {
             data[3] = (address & 0xFF);
             data[4] = ((address >> 8) & 0xFF);
             data[5] = Calc_CRC(data);
-
             nibeEmit.once(address,(data) => {
+                clearTimeout(getTimer[data.register]);
                 resolve(data);
             })
             core.send({type:"reqData",data:data});
-            
         } else {
-            getTimer[address] = setTimeout((address) => {
-                getTimer[address] = setTimeout((address) => {
-                    nibeEmit.removeAllListeners(address);
-                    reject(new Error('Register ('+address+') no respond'));
-                }, 15000, address);
-                register[index].logset = false;
-                var data = [];
-                data[0] = 0xc0;
-                data[1] = 0x69;
-                data[2] = 0x02;
-                data[3] = (address & 0xFF);
-                data[4] = ((address >> 8) & 0xFF);
-                data[5] = Calc_CRC(data);
-                nibeEmit.removeAllListeners(address);
-                nibeEmit.once(address,(data) => {
-                    clearTimeout(getTimer[data.register]);
-                    resolve(data);
-                })
-                core.send({type:"reqData",data:data});
-            }, 7000, address);
             nibeEmit.once(address,(data) => {
                 clearTimeout(getTimer[data.register]);
                 resolve(data);
