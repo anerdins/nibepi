@@ -8,6 +8,10 @@
     "serial":{
         "port":"/dev/ttyAMA0"
     },
+    "home": {
+        "adjust_s1":0,
+        "adjust_s2":0
+    },
     "mqtt": {
         "enable":false,
         "host":"127.0.0.1",
@@ -17,7 +21,7 @@
         "topic":"nibe/modbus/"
     },
     "system": {
-        "readonly": false
+        "readonly": true
     },
     "hotwater": {
         "enable_autoluxury": false,

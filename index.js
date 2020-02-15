@@ -160,6 +160,7 @@ if(config.system.readonly===true) {
 }
     startCore(serialPort).then(result => {
         core = result;
+        
         core.on('message', (m) => {
             if(m.type=="data") {
                 let n = m.data;
@@ -203,7 +204,26 @@ const checkPump = (data,callback) => {
     callback(null);
     }
 const announcment = (msg,cb) => {
-    if(msg.data[3]==109) {
+    if(model=="" && config.system.pump!==undefined && config.system.pump!=="" && config.system.firmware!==undefined && config.system.firmware!=="") {
+        model = config.system.pump;
+        firmware = config.system.firmware;
+        let reg = require(pumpModel[model]);
+        for (i = 0; i < reg.length; i = i + 1) {
+            let found = false;
+            for (j = 0; j < register.length; j = j + 1) {
+                if(register[j].register===reg[i].register) {
+                    found = true;
+                }
+            }
+            if(found===false) {
+                register.push(reg[i])
+            }
+        }
+        cb(null,true)
+        console.log(`Nibe ${model} connected`);
+        console.log(`Firmware ${firmware}`);
+        console.log(`Register is set. Length: ${register.length}`)
+    } else if(msg.data[3]==109) {
         //console.log(`Announcement message`);
         if(model=="") {
             checkPump(msg.data, function(err) { 
@@ -220,7 +240,6 @@ const announcment = (msg,cb) => {
                         register.push(reg[i])
                     }
                 }
-                //register = register.concat(reg);
                 cb(null,true)
                 console.log(`Nibe ${model} connected`);
                 console.log(`Firmware ${firmware}`);
@@ -262,11 +281,12 @@ async function getDataPromise(address) {
     const promise = new Promise((resolve,reject) => {
     let index = register.findIndex(index => index.register == address);
     if(index!==-1) {
-        getTimer[address] = setTimeout((address) => {
+        getTimer[address] = setTimeout((address,index) => {
             getTimer[address] = setTimeout((address) => {
                 nibeEmit.removeAllListeners(address);
+                //reject(false);
                 reject(new Error('Register ('+address+') no respond'));
-            }, 15000, address);
+            }, 20000, address);
             register[index].logset = false;
             var data = [];
             data[0] = 0xc0;
@@ -281,7 +301,7 @@ async function getDataPromise(address) {
                 resolve(data);
             })
             core.send({type:"reqData",data:data});
-        }, 7000, address);
+        }, 7000, address,index);
         if(register[index].logset===undefined || register[index].logset===false) {
             var data = [];
             data[0] = 0xc0;
@@ -310,13 +330,13 @@ async function getDataPromise(address) {
 async function reqDataAsync (address) {
     const promise = new Promise((resolve,reject) => {
         if(core!==undefined && core.connected!==undefined && core.connected===true) {
-            if(model!="") {
+            if(model.length!==0) {
                 getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
             } else {
                 setTimeout((address) => {
                     if(core!==undefined && core.connected!==undefined && core.connected===true) {
-                        if(model!="") {
-                            getDataPromise(address).then(result => resolve(result),(error=> reject(error)));
+                        if(model.length!==0) {
+                            getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
                         }
                     } else {
                         reject(new Error('Register is empty'))
@@ -326,8 +346,8 @@ async function reqDataAsync (address) {
         } else {
             setTimeout((address) => {
                 if(core!==undefined && core.connected!==undefined && core.connected===true) {
-                    if(model!="") {
-                        getDataPromise(address).then(result => resolve(result),(error=> reject(error)));
+                    if(model.length!==0) {
+                        getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
                     }
                 } else {
                     reject(new Error('Core is not started.'))
