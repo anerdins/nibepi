@@ -955,7 +955,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                 for (const arr of mqtt_subcribers) {
                     if(topic===arr) {
                         let save = topic.replace(/\//g,"_");
-                        message = message.replace(/\,/g,".");
+                        //message = message.replace(/\,/g,".");
                         if(mqttData[save]===undefined) mqttData[save] = {};
                         mqttData[save].data = Number(message.toString());
                         mqttData[save].timestamp = Date.now();
