@@ -41,5 +41,9 @@
         "dm_reset_enable_stop":false,
         "dm_reset_stop_diff":0.7,
         "dm_reset_slow_diff":0.3
+    },
+    "fan": {
+        "co2_limit":800,
+        "low_cpr_freq":40
     }
 }
