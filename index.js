@@ -286,7 +286,7 @@ async function getDataPromise(address) {
                 nibeEmit.removeAllListeners(address);
                 //reject(false);
                 reject(new Error('Register ('+address+') no respond'));
-            }, 20000, address);
+            }, 30000, address);
             register[index].logset = false;
             var data = [];
             data[0] = 0xc0;
