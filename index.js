@@ -469,11 +469,13 @@ function setDataValue(incoming) {
                     if(incoming.value>max) {
                         incoming.value = max
                         corruptData = true;
+                        nibeEmit.emit('fault',{from:"Skicka värde",message:'Data ('+incoming.value/item.factor+') utanför giltigt värde som får skickas.'});
+                        log(config.log.enable,'Data ('+incoming.value/item.factor+') out of range, to register '+incoming.register,config.log['error'],"Data");
                     } else if(incoming.value<min) {
                         incoming.value = min;
                         corruptData = true;
-                        nibeEmit.emit('fault',{from:"Skicka värde",message:'Data ('+incoming.value+') utanför giltigt värde som får skickas.'});
-                        log(config.log.enable,'Data ('+incoming.value+') out of range, to register '+incoming.register,config.log['error'],"Data");
+                        nibeEmit.emit('fault',{from:"Skicka värde",message:'Data ('+incoming.value/item.factor+') utanför giltigt värde som får skickas.'});
+                        log(config.log.enable,'Data ('+incoming.value/item.factor+') out of range, to register '+incoming.register,config.log['error'],"Data");
                     }
                 }
             }
@@ -955,9 +957,9 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                 for (const arr of mqtt_subcribers) {
                     if(topic===arr) {
                         let save = topic.replace(/\//g,"_");
-                        //message = message.replace(/\,/g,".");
+                        let messageString = message.toString().replace(/\,/g,".");
                         if(mqttData[save]===undefined) mqttData[save] = {};
-                        mqttData[save].data = Number(message.toString());
+                        mqttData[save].data = Number(messageString);
                         mqttData[save].timestamp = Date.now();
                         subscribed = true;
                     }
