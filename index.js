@@ -267,6 +267,8 @@ const announcment = (msg,cb) => {
                 console.log('RMU40 System '+((-24)+msg.data[2])+' connected (read-only mode)');
             } else {
                 console.log('RMU40 System '+((-24)+msg.data[2])+' connected');
+                // EMIT HERE
+                nibeEmit.emit('rmu_ready','s'+((-24)+msg.data[2]));
             }
             console.log(`Register is set. Length: ${register.length}`)
             cb(null,false)
