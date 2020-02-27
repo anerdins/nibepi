@@ -793,8 +793,9 @@ const decodeMessage = (buf) => {
                 
                 nibeEmit.emit(address,register[index]);
                 addMQTTdiscovery(register[index]);
+                publishMQTT(config.mqtt.topic+address+"json",JSON.stringify(register[index]))
+                publishMQTT(config.mqtt.topic+address+"/raw",register[index].raw_data)
                 publishMQTT(config.mqtt.topic+address,register[index].data)
-                publishMQTT(config.mqtt.topic+address+"/raw",register[index].data)
                 log(config.log.enable,JSON.stringify(register[index]),config.log['debug'],"Data");
                 log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['info'],"Data");
             }
