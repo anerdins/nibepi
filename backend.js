@@ -294,6 +294,7 @@ const makeResponse = (data) => {
     } else if(data[3]==105 && data[4]==0x00) {
         if(getQueue!==undefined && getQueue.length!==0) {
             var lastMsg = getQueue.pop();
+            
             if(lastMsg!==undefined) {
                 myPort.write(lastMsg);
                 resolve(data);

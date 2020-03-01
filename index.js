@@ -102,6 +102,8 @@ const updateConfig = (data) => {
                                         log(config.log.enable,"Could not set read-only mode.",config.log['error'],"Config");
                                         return(false);
                                     } else {
+                                        console.log('Read only mode set.')
+
                                         return (true)
                                     }
                                 })
@@ -145,6 +147,7 @@ if(config.system.readonly===true) {
             log(config.log.enable,"Could not set read-only mode at startup.",config.log['error'],"Startup");
             return(false);
         } else {
+            console.log('Read only mode set.')
             return (true)
         }
     })
@@ -1092,5 +1095,6 @@ module.exports = {
     redOn:redOn,
     addSensor: addSensor,
     removeSensor: removeSensor,
-    getMQTTData:getMQTTData
+    getMQTTData:getMQTTData,
+    log:log
 }
