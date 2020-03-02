@@ -292,20 +292,23 @@ async function getDataPromise(address) {
                 //reject(false);
                 reject(new Error('Register ('+address+') no respond'));
             }, 30000, address);
-            register[index].logset = false;
-            var data = [];
-            data[0] = 0xc0;
-            data[1] = 0x69;
-            data[2] = 0x02;
-            data[3] = (address & 0xFF);
-            data[4] = ((address >> 8) & 0xFF);
-            data[5] = Calc_CRC(data);
-            nibeEmit.removeAllListeners(address);
-            nibeEmit.once(address,(data) => {
-                clearTimeout(getTimer[data.register]);
-                resolve(data);
-            })
-            core.send({type:"reqData",data:data});
+            if(register[index]!==undefined) {
+                register[index].logset = false;
+                var data = [];
+                data[0] = 0xc0;
+                data[1] = 0x69;
+                data[2] = 0x02;
+                data[3] = (address & 0xFF);
+                data[4] = ((address >> 8) & 0xFF);
+                data[5] = Calc_CRC(data);
+                nibeEmit.removeAllListeners(address);
+                nibeEmit.once(address,(data) => {
+                    clearTimeout(getTimer[data.register]);
+                    resolve(data);
+                })
+                core.send({type:"reqData",data:data});
+            }
+            
         }, 7000, address,index);
         if(register[index].logset===undefined || register[index].logset===false) {
             var data = [];
@@ -336,12 +339,22 @@ async function reqDataAsync (address) {
     const promise = new Promise((resolve,reject) => {
         if(core!==undefined && core.connected!==undefined && core.connected===true) {
             if(model.length!==0) {
-                getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
+                getDataPromise(address).then(result => {
+                    resolve(result)
+                },(error => {
+                    reject(error)
+                }));
+                //getDataPromise(address).then(result => {resolve(result)},(error=> reject(error))).catch(err => reject());
             } else {
                 setTimeout((address) => {
                     if(core!==undefined && core.connected!==undefined && core.connected===true) {
                         if(model.length!==0) {
-                            getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
+                            getDataPromise(address).then(result => {
+                                resolve(result)
+                            },(error => {
+                                reject(error)
+                            }));
+                            //getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
                         }
                     } else {
                         reject(new Error('Register is empty'))
@@ -352,7 +365,12 @@ async function reqDataAsync (address) {
             setTimeout((address) => {
                 if(core!==undefined && core.connected!==undefined && core.connected===true) {
                     if(model.length!==0) {
-                        getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
+                        getDataPromise(address).then(result => {
+                            resolve(result)
+                        },(error => {
+                            reject(error)
+                        }));
+                        //getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
                     }
                 } else {
                     reject(new Error('Core is not started.'))
@@ -410,6 +428,9 @@ const setData = (address,value,cb=()=>{}) => {
     var output = setDataValue({register:address,value:value})
     if(output===-1) {
         let err = ('Register dont exist')
+        return cb(err);
+    } else if(output===-2) {
+        let err = ('Register not writeable');
         return cb(err);
     }
     if(core!==undefined && core.connected!==undefined && core.connected===true) {
@@ -1079,6 +1100,19 @@ const getMQTTData = (data) => {
     });
     return promise;
 }
+const writeLog = (data,plugin,level) => {
+    let from = "System";
+    if(plugin=="fan") from = "Automatiskt luftflöde";
+    if(plugin=="hw") from = "Varmvattenreglering";
+    if(level=="info" || level=="error") {
+        nibeEmit.emit('fault',{from:from,message:data});
+    }
+    if(config.log[plugin]!==undefined) {
+        log(config.log.enable,data,config.log[plugin],from);
+    }
+    
+    return;
+}
 module.exports = {
     reqDataAsync:reqDataAsync,
     setData:setData,
@@ -1096,5 +1130,5 @@ module.exports = {
     addSensor: addSensor,
     removeSensor: removeSensor,
     getMQTTData:getMQTTData,
-    log:log
+    log:writeLog
 }

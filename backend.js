@@ -95,6 +95,8 @@ function showError(error) {
     myPort.removeAllListeners();
     if(process.connected===true) {
         process.disconnect();
+        console.log('Error in the core, shuting it down.')
+        process.exit(99);
     }
 }
 
