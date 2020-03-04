@@ -54,8 +54,94 @@ function requireF(modulePath){ // force require
      return require(__dirname+'/default.json');
     }
 }
+function requireGraph(){ // force require
+    const promise = new Promise((resolve,reject) => {
+    try {
+     resolve(require(path+'/graph.json'));
+    }
+    catch (e) {
+        reject('No graphs to load.')
+    }
+});
+return promise;
+}
 let config = requireF(path+'/config.json');
 var timer;
+var graphTimer;
+const saveGraph = (data) => {
+    if(config.system===undefined || config.system.save_graph!==true) return;
+    if(data===undefined) return;
+    for (var property in data) {
+        if (data.hasOwnProperty(property)) {
+            for (var object in data[property]) {
+                if (data[property].hasOwnProperty(object)) {
+                    if(data[property][object]!==undefined && data[property][object].length>5000) {
+                        let len = data[property][object].length-5000;
+                        data[property][object].splice(0,len)
+                    }
+                }
+            }
+        }
+    }
+    let run = false;
+    if(graphTimer!==undefined && graphTimer._idleTimeout>0) {
+        clearTimeout(graphTimer);
+        run = true;
+    } else {
+        run = true;
+    }
+    if(run===true) {
+        graphTimer = setTimeout(() => {
+            if(JSON.stringify(data).length>2) {
+                if(config.system===undefined) config.system = {};
+                if(config.log===undefined) config.log = {};
+                if(config.system.readonly===true) {
+                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                        if(error) {
+                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
+                            return(false);
+                        } else {
+                            
+                            fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
+                                if(err) return (false);
+                                log(config.log.enable,"Graphs saved",config.log['info'],"Graph");
+                                nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
+                                exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
+                                    if(error) {
+                                        nibeEmit.emit('fault',{from:"Grafer",message:'Kunde inte sätta läsbart läge på filsystemet.'});
+                                        log(config.log.enable,"Could not set read-only mode.",config.log['error'],"Graph");
+                                        return(false);
+                                    } else {
+                                        console.log('Read only mode set.')
+
+                                        return (true)
+                                    }
+                                })
+                                
+                            }); 
+                        }
+                    });
+                } else {
+                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                        if(error) {
+                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
+                            return(false);
+                        } else {
+                            fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
+                                if(err) return (false);
+                                nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
+                                log(config.log.enable,"Config file saved",config.log['info'],"Config");
+                                return (true)
+                            }); 
+                        }
+                    });
+                    
+                }
+                
+            }
+        }, 5000);
+    }
+}
 const updateConfig = (data) => {
     config = data;
 
@@ -836,7 +922,7 @@ const decodeMessage = (buf) => {
     }
 }
 const getConfig = () => {
-    nibeEmit.emit('config',config);
+    //nibeEmit.emit('config',config);
     return config;
 }
 const getRegister = () => {
@@ -1130,5 +1216,7 @@ module.exports = {
     addSensor: addSensor,
     removeSensor: removeSensor,
     getMQTTData:getMQTTData,
-    log:writeLog
+    log:writeLog,
+    saveGraph:saveGraph,
+    requireGraph:requireGraph
 }
