@@ -25,7 +25,9 @@ const path = "/etc/nibepi"
 const startCore = require('./lib/startCore')
 const stopCore = require('./lib/stopCore');
 var log = require('./log');
-var exec = require('child_process').exec;
+var child = require('child_process');
+let exec = child.exec;
+let spawn = child.spawn;
 let model = "";
 let rmu = {};
 let firmware = "";
@@ -67,80 +69,55 @@ return promise;
 }
 let config = requireF(path+'/config.json');
 var timer;
-var graphTimer;
-const saveGraph = (data) => {
-    if(config.system===undefined || config.system.save_graph!==true) return;
-    if(data===undefined) return;
-    for (var property in data) {
-        if (data.hasOwnProperty(property)) {
-            for (var object in data[property]) {
-                if (data[property].hasOwnProperty(object)) {
-                    if(data[property][object]!==undefined && data[property][object].length>5000) {
-                        let len = data[property][object].length-5000;
-                        data[property][object].splice(0,len)
-                    }
-                }
-            }
-        }
-    }
-    let run = false;
-    if(graphTimer!==undefined && graphTimer._idleTimeout>0) {
-        clearTimeout(graphTimer);
-        run = true;
-    } else {
-        run = true;
-    }
-    if(run===true) {
-        graphTimer = setTimeout(() => {
-            if(JSON.stringify(data).length>2) {
-                if(config.system===undefined) config.system = {};
-                if(config.log===undefined) config.log = {};
-                if(config.system.readonly===true) {
-                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-                        if(error) {
-                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
-                            return(false);
-                        } else {
-                            
-                            fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
-                                if(err) return (false);
-                                log(config.log.enable,"Graphs saved",config.log['info'],"Graph");
-                                nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
-                                exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
-                                    if(error) {
-                                        nibeEmit.emit('fault',{from:"Grafer",message:'Kunde inte sätta läsbart läge på filsystemet.'});
-                                        log(config.log.enable,"Could not set read-only mode.",config.log['error'],"Graph");
-                                        return(false);
-                                    } else {
-                                        console.log('Read only mode set.')
 
-                                        return (true)
-                                    }
-                                })
-                                
-                            }); 
-                        }
-                    });
-                } else {
-                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-                        if(error) {
-                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
-                            return(false);
-                        } else {
-                            fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
-                                if(err) return (false);
-                                nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
-                                log(config.log.enable,"Config file saved",config.log['info'],"Config");
-                                return (true)
-                            }); 
-                        }
-                    });
-                    
-                }
+const saveGraph = (data) => {
+    const promise = new Promise((resolve,reject) => {
+    if(config.system===undefined || config.system.save_graph!==true) return;
+    if(data===undefined) reject(new Error('Cant save empty graph'));
+        
+    if(config.system===undefined) config.system = {};
+            if(config.log===undefined) config.log = {};
+            if(config.system.readonly===true) {
+                exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                    if(error) {
+                        reject(new Error('Error saving graph, could not set RW mode'));
+                    } else {
+                        fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
+                            if(err) reject(new Error('Error saving graph to disc, write error'));
+                            log(config.log.enable,"Graphs saved",config.log['info'],"Graph");
+                            nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
+                            resolve('Graferna sparade till SD-kort')
+                            exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
+                                if(error) {
+                                    nibeEmit.emit('fault',{from:"Grafer",message:'Kunde inte sätta läsbart läge på filsystemet.'});
+                                    
+                                    reject(new Error('Error setting read-only mode after saving graph'));
+                                } else {
+                                    console.log('Read only mode set.')
+                                    resolve('Graferna är sparade till SD-kort och läsbart läge aktivt')
+                                }
+                            })
+                            
+                        }); 
+                    }
+                });
+            } else {
+                exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                    if(error) {
+                        log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
+                        reject(new Error('Error saving graph, could not set RW mode'));
+                    } else {
+                        fs.writeFile(path+'/graph.json', JSON.stringify(data,null,2), function(err) {
+                            if(err) reject(new Error('Error saving graph to disc, write error'));
+                            nibeEmit.emit('fault',{from:"Grafer",message:'Graferna är sparade till SD-kort'});
+                            resolve('Graferna sparade till SD-kort')
+                        }); 
+                    }
+                });
                 
             }
-        }, 5000);
-    }
+        });
+        return promise;
 }
 const updateConfig = (data) => {
     config = data;
@@ -1073,7 +1050,10 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                         let messageString = message.toString().replace(/\,/g,".");
                         if(mqttData[save]===undefined) mqttData[save] = {};
                         mqttData[save].data = Number(messageString);
+                        mqttData[save].raw_data = Number(messageString);
+                        mqttData[save].register = save;
                         mqttData[save].timestamp = Date.now();
+                        nibeEmit.emit('mqttData',mqttData[save]);
                         subscribed = true;
                     }
                 }
