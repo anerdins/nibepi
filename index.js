@@ -72,7 +72,7 @@ var timer;
 
 const saveGraph = (data) => {
     const promise = new Promise((resolve,reject) => {
-    if(config.system===undefined || config.system.save_graph!==true) return;
+    if(config.system===undefined || config.system.save_graph!==true) reject();
     if(data===undefined) reject(new Error('Cant save empty graph'));
         
     if(config.system===undefined) config.system = {};
@@ -352,8 +352,7 @@ async function getDataPromise(address) {
         getTimer[address] = setTimeout((address,index) => {
             getTimer[address] = setTimeout((address) => {
                 nibeEmit.removeAllListeners(address);
-                //reject(false);
-                reject(new Error('Register ('+address+') no respond'));
+                reject(new Error('No respond from register ('+address+')'));
             }, 30000, address);
             if(register[index]!==undefined) {
                 register[index].logset = false;
@@ -370,6 +369,8 @@ async function getDataPromise(address) {
                     resolve(data);
                 })
                 core.send({type:"reqData",data:data});
+            } else {
+                reject(new Error('Register ('+address+') returned no data.'));
             }
             
         }, 7000, address,index);
@@ -407,38 +408,11 @@ async function reqDataAsync (address) {
                 },(error => {
                     reject(error)
                 }));
-                //getDataPromise(address).then(result => {resolve(result)},(error=> reject(error))).catch(err => reject());
             } else {
-                setTimeout((address) => {
-                    if(core!==undefined && core.connected!==undefined && core.connected===true) {
-                        if(model.length!==0) {
-                            getDataPromise(address).then(result => {
-                                resolve(result)
-                            },(error => {
-                                reject(error)
-                            }));
-                            //getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
-                        }
-                    } else {
-                        reject(new Error('Register is empty'))
-                    }
-                }, 5000, address);
+                reject(new Error('Heatpump is not ready yet.'))
             }
         } else {
-            setTimeout((address) => {
-                if(core!==undefined && core.connected!==undefined && core.connected===true) {
-                    if(model.length!==0) {
-                        getDataPromise(address).then(result => {
-                            resolve(result)
-                        },(error => {
-                            reject(error)
-                        }));
-                        //getDataPromise(address).then(result => resolve(result),(error=> reject(error))).catch(err => reject());
-                    }
-                } else {
-                    reject(new Error('Core is not started.'))
-                }
-            }, 5000, address);
+            reject(new Error('Core is not started.'))
         }
     });
     return promise;
@@ -1170,6 +1144,8 @@ const writeLog = (data,plugin,level) => {
     let from = "System";
     if(plugin=="fan") from = "Automatiskt luftflöde";
     if(plugin=="hw") from = "Varmvattenreglering";
+    if(plugin=="weather") from = "Prognosreglering";
+    if(plugin=="diagnostic") from = "Diagnostik";
     if(level=="info" || level=="error") {
         nibeEmit.emit('fault',{from:from,message:data});
     }
