@@ -263,7 +263,7 @@
     {"register":"42447","factor":10,"size":"u32","mode":"R","titel":"Heat Meter - Heat Cpr - Total system","info":"Accumulated energy production as calculated by the heat meter, summaries of all heat pumps in system","unit":"kWh","min":"0","max":"0"},
     {"register":"42504","factor":1,"size":"u32","mode":"R","titel":"External Energy Meter Accumulated System","info":"","unit":"kWh","min":"0","max":"0"},
     {"register":"43001","factor":1,"size":"u16","mode":"R","titel":"Software version","info":"","unit":"","min":"0","max":"0"},
-    {"register":"43005","factor":10,"size":"s16","mode":"R/W","titel":"Degree Minutes (16 bit)","info":"Degree minutes, 16bit value (-32768 < x < 32767). Values outside valid values are rounded to the closest valid value.","unit":"","min":"-20000","max":"5000"},
+    {"register":"43005","factor":10,"size":"s16","mode":"R/W","titel":"Degree Minutes (16 bit)","info":"Degree minutes, 16bit value (-32768 < x < 32767). Values outside valid values are rounded to the closest valid value.","unit":"","min":"-30000","max":"30000"},
     {"register":"43006","factor":10,"size":"s16","mode":"R","titel":"Calc. Supply S4","info":"Calculated supply temperature for the climate system","unit":"°C","min":"0","max":"0"},
     {"register":"43007","factor":10,"size":"s16","mode":"R","titel":"Calc. Supply S3","info":"Calculated supply temperature for the climate system","unit":"°C","min":"0","max":"0"},
     {"register":"43008","factor":10,"size":"s16","mode":"R","titel":"Calc. Supply S2","info":"Calculated supply temperature for the climate system","unit":"°C","min":"0","max":"0"},
