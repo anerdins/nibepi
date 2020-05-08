@@ -313,6 +313,13 @@
     {"register":"47138","factor":1,"size":"u8","mode":"R/W","titel":"Operational mode heat medium pump","info":" 10=Intermittent 20=Continous 30=Economy 40=Auto","unit":"","min":"10","max":"40"},
     {"register":"47212","factor":100,"size":"s16","mode":"R/W","titel":"Max int add. power","info":"","unit":"kW","min":"0","max":"4500"},
     {"register":"47214","factor":1,"size":"u16","mode":"R/W","titel":"Fuse","info":"Size of the fuse that the HP is connected to","unit":"A","min":"1","max":"400"},
+    {"register":"47260","factor":1,"size":"u8","mode":"R/W","titel":"Fan Mode","info":"Fan mode","unit":"","min":"0","max":"4","map":[
+        {"0":"Normal"},
+        {"1":"Hastighet 1"},
+        {"2":"Hastighet 2"},
+        {"3":"Hastighet 3"},
+        {"4":"Hastighet 4"}
+    ]},
     {"register":"47261","factor":1,"size":"u8","mode":"R/W","titel":"Exhaust Fan speed 4","info":"","unit":"%","min":"0","max":"100"},
     {"register":"47262","factor":1,"size":"u8","mode":"R/W","titel":"Exhaust Fan speed 3","info":"","unit":"%","min":"0","max":"100"},
     {"register":"47263","factor":1,"size":"u8","mode":"R/W","titel":"Exhaust Fan speed 2","info":"","unit":"%","min":"0","max":"100"},

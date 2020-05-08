@@ -290,6 +290,19 @@ const announcment = (msg,cb) => {
         console.log(`Firmware ${firmware}`);
         console.log(`Register is set. Length: ${register.length}`)
     } else if(msg.data[3]==109) {
+        let index = register.findIndex(i => i.register == 45001);
+        if(index!==-1) {
+            reqDataAsync(45001).then(atad => {
+                let data = Object.assign({}, atad);
+                if(data!==undefined && data.raw_data===251) {
+                    console.log('Resetting alarm.')
+                    setData(45171,1);
+                }
+            },err => {
+                
+            });
+        }
+        
         //console.log(`Announcement message`);
         if(model=="") {
             checkPump(msg.data, function(err) { 
