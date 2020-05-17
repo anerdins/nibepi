@@ -848,7 +848,7 @@ const decodeMessage = (buf) => {
             if (min !== undefined && max !== undefined) {
                 if (min !== 0 || max !== 0) {
                     if ((data > max / register[index].factor) || (data < min / register[index].factor)) {
-                        nibeEmit.emit('fault',{from:"Datahantering",message:'Korrut värde från register '+address+", Värde: "+data+register[index].unit});
+                        nibeEmit.emit('fault',{from:"Datahantering",message:'Korrupt värde från register '+address+", Värde: "+data+register[index].unit});
                         log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['error'],"CORRUPT");
                         corruptData = true;
                     }
