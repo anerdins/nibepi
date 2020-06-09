@@ -784,6 +784,7 @@ const decodeMessage = (buf) => {
                 }
                 else {
                     data = buf[i + 4] | buf[i + 5] <<8 | buf[i + 2] <<16 | buf[i + 3] <<24;
+                    //data = buf[i + 2] | buf[i + 3] <<8 | buf[i + 4] <<16 | buf[i + 5] <<24;
                     if (data >= 2147483647) {
                         data = (data - 4294967294);
                     }
@@ -814,7 +815,8 @@ const decodeMessage = (buf) => {
                 }
                 else {
                     data = (buf[i + 4] & 0xFF) | (buf[i + 5] & 0xFF) << 8 | (buf[i + 2] & 0xFF) << 16 | (buf[i + 3] & 0xFF) << 24;
-                    //data = (buf[i + 2] & 0xFF) << 16 | (buf[i + 3] & 0xFF) << 24 | (buf[i + 4] & 0xFF) | (buf[i + 5] & 0xFF) << 8;
+                    //data = (buf[i + 2] & 0xFF) | (buf[i + 3] & 0xFF) << 8 | (buf[i + 4] & 0xFF) << 16 | (buf[i + 5] & 0xFF) << 24;
+                    //data = (buf[i + 2] & 0xFF) << 16 | (buf[i + 3] & 0xFF) << 24 | (buf[i + 4] & 0xFF) | (buf[i + 5] & 0xFF) << 8; Old way
                     data = data>>>0;
                     i = i + 5;
                 }

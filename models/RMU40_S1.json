@@ -12,16 +12,9 @@
         {"184":"Filterlarm"},
         {"251":"Kom.avb Modbus"}
     ]},
-    {"register":"47260","factor":1,"size":"u8","mode":"R/W","titel":"Fan Mode","info":"Fan mode","unit":"","min":"0","max":"4","map":[
-        {"0":"Normal"},
-        {"1":"Hastighet 1"},
-        {"2":"Hastighet 2"},
-        {"3":"Hastighet 3"},
-        {"4":"Hastighet 4"}
-    ]},
     {"register":"10011","factor":1,"size":"u8","mode":"R","titel":"Fan Time (h)","info":"Remaining time on forced vent.","unit":"","min":"0","max":"0"},
     {"register":"10012","factor":1,"size":"u8","mode":"R","titel":"Fan Time (m)","info":"Remaining time on forced vent.","unit":"","min":"0","max":"0"},
-    {"register":"48132","factor":1,"size":"u8","mode":"R/W","titel":"Temporary Lux","info":"0=Off, 1=3h, 2=6h, 3=12h, 4=One time increase","unit":"","min":"0","max":"4","map":[
+    {"register":"10020","factor":1,"size":"u8","mode":"R/W","titel":"Temporary Lux","info":"0=Off, 1=3h, 2=6h, 3=12h, 4=One time increase","unit":"","min":"0","max":"4","map":[
         {"0":"Från"},
         {"1":"3h"},
         {"2":"6h"},

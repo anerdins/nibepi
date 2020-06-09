@@ -491,6 +491,13 @@
 {"register":"47209","factor":1,"size":"s16","mode":"R/W","titel":"DM between add. steps","info":"The number of degree minutes between start of each electric addition step","unit":"","min":"0","max":"0"},
 {"register":"47212","factor":100,"size":"s16","mode":"R/W","titel":"Max int add. power","info":"","unit":"kW","min":"0","max":"4500"},
 {"register":"47214","factor":1,"size":"u16","mode":"R/W","titel":"Fuse","info":"Size of the fuse that the HP is connected to","unit":"A","min":"1","max":"400"},
+{"register":"47260","factor":1,"size":"u8","mode":"R/W","titel":"Fan Mode","info":"Fan mode","unit":"","min":"0","max":"4","map":[
+    {"0":"Normal"},
+    {"1":"Hastighet 1"},
+    {"2":"Hastighet 2"},
+    {"3":"Hastighet 3"},
+    {"4":"Hastighet 4"}
+]},
 {"register":"47271","factor":1,"size":"u8","mode":"R/W","titel":"Fan return time 4","info":"Time from a changed fan speed until it returns to normal speed","unit":"h","min":"1","max":"99"},
 {"register":"47272","factor":1,"size":"u8","mode":"R/W","titel":"Fan return time 3","info":"Time from a changed fan speed until it returns to normal speed","unit":"h","min":"1","max":"99"},
 {"register":"47273","factor":1,"size":"u8","mode":"R/W","titel":"Fan return time 2","info":"Time from a changed fan speed until it returns to normal speed","unit":"h","min":"1","max":"99"},

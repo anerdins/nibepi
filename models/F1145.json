@@ -537,6 +537,8 @@
 {"register":"43097","factor":1,"size":"u8","mode":"R","titel":"Status of the shunt controlled additional heat accessory","info":"10 = Off, 20 = Running, 30 = Passive","unit":"","min":"0","max":"0"},
 {"register":"43103","factor":1,"size":"u8","mode":"R","titel":"HPAC state","info":"State of the HPAC cooling accessory.","unit":"","min":"0","max":"0"},
 {"register":"43108","factor":1,"size":"u8","mode":"R","titel":"Fan speed current","info":"The current fan speed after scheduling and blocks are considered","unit":"%","min":"0","max":"0"},
+{"register":"43110","factor":1,"size":"u8","mode":"R","titel":"Heating allowed","info":"Heating allowed","unit":"","min":"0","max":"0"},
+{"register":"43111","factor":1,"size":"u8","mode":"R","titel":"Cooling allowed","info":"Cooling allowed","unit":"","min":"0","max":"0"},
 {"register":"43152","factor":1,"size":"u8","mode":"R","titel":"Internal cooling blocked","info":"","unit":"","min":"0","max":"0"},
 {"register":"43158","factor":1,"size":"u8","mode":"R","titel":"External adjustment activated via input S4","info":"","unit":"","min":"0","max":"0"},
 {"register":"43159","factor":1,"size":"u8","mode":"R","titel":"External adjustment activated via input S3","info":"","unit":"","min":"0","max":"0"},

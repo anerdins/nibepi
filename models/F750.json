@@ -284,6 +284,8 @@
     {"register":"43096","factor":1,"size":"u8","mode":"R","titel":"Mixing Valve State S1","info":"State of the mixing valve for the climate system","unit":"","min":"0","max":"0"},
     {"register":"43097","factor":1,"size":"u8","mode":"R","titel":"Status of the shunt controlled additional heat accessory","info":"10 = Off, 20 = Running, 30 = Passive","unit":"","min":"0","max":"0"},
     {"register":"43108","factor":1,"size":"u8","mode":"R","titel":"Fan speed current","info":"The current fan speed after scheduling and blocks are considered","unit":"%","min":"0","max":"0"},
+    {"register":"43110","factor":1,"size":"u8","mode":"R","titel":"Heating allowed","info":"Heating allowed","unit":"","min":"0","max":"0"},
+    {"register":"43111","factor":1,"size":"u8","mode":"R","titel":"Cooling allowed","info":"Cooling allowed","unit":"","min":"0","max":"0"},
     {"register":"43122","factor":1,"size":"s16","mode":"R","titel":"Compr. current min.freq.","info":"The current minimum frequency of the compressor","unit":"Hz","min":"0","max":"0"},
     {"register":"43123","factor":1,"size":"s16","mode":"R","titel":"Compr. current max.freq.","info":"The current maximum frequency of the compressor","unit":"Hz","min":"0","max":"0"},
     {"register":"43124","factor":10,"size":"s16","mode":"R","titel":"Airflow ref.","info":"Reference value for the airflow.","unit":"","min":"0","max":"0"},
