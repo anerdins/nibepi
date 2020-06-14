@@ -69,7 +69,6 @@ return promise;
 }
 let config = requireF(path+'/config.json');
 var timer;
-
 const saveGraph = (data) => {
     const promise = new Promise((resolve,reject) => {
     if(config.system===undefined || config.system.save_graph!==true) reject();
