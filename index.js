@@ -255,20 +255,21 @@ if(config.system.readonly===true) {
     });
 }
 
-const checkPump = (data,callback) => {
-    let modelLength = data[4]+5;
-    model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
-    firmware = (data[6]*256)+data[7];
-    if(model[0]=="VVM") {
-        model[0] = model[0]+model[1];
-    }
-    model = model[0].split("-");
-    model = model[0];
-    config.system.pump = model;
-    config.system.firmware = firmware;
-    callback(null);
-    }
+
 const announcment = (msg,cb) => {
+    const checkPump = (data,callback) => {
+        let modelLength = data[4]+5;
+        model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
+        firmware = (data[6]*256)+data[7];
+        if(model[0]=="VVM") {
+            model[0] = model[0]+model[1];
+        }
+        model = model[0].split("-");
+        model = model[0];
+        config.system.pump = model;
+        config.system.firmware = firmware;
+        callback(null);
+        }
     if(model=="" && config.system.pump!==undefined && config.system.pump!=="" && config.system.firmware!==undefined && config.system.firmware!=="") {
         model = config.system.pump;
         firmware = config.system.firmware;
@@ -291,7 +292,7 @@ const announcment = (msg,cb) => {
     } else if(msg.data[3]==109) {
         let index = register.findIndex(i => i.register == 45001);
         if(index!==-1) {
-            reqDataAsync(45001).then(atad => {
+            reqData(45001).then(atad => {
                 let data = Object.assign({}, atad);
                 if(data!==undefined && data.raw_data===251) {
                     console.log('Resetting alarm.')
@@ -357,17 +358,38 @@ const announcment = (msg,cb) => {
     }
 }
 let getTimer = {};
-async function getDataPromise(address) {
-    const promise = new Promise((resolve,reject) => {
-    let index = register.findIndex(index => index.register == address);
-    if(index!==-1) {
-        getTimer[address] = setTimeout((address,index) => {
-            getTimer[address] = setTimeout((address) => {
-                nibeEmit.removeAllListeners(address);
-                reject(new Error('No respond from register ('+address+')'));
-            }, 30000, address);
-            if(register[index]!==undefined) {
-                register[index].logset = false;
+
+async function reqData (address) {
+    async function getDataPromise(address) {
+        const promise = new Promise((resolve,reject) => {
+        let index = register.findIndex(index => index.register == address);
+        if(index!==-1) {
+            getTimer[address] = setTimeout((address,index) => {
+                getTimer[address] = setTimeout((address) => {
+                    nibeEmit.removeAllListeners(address);
+                    reject(new Error('No respond from register ('+address+')'));
+                }, 30000, address);
+                if(register[index]!==undefined) {
+                    register[index].logset = false;
+                    var data = [];
+                    data[0] = 0xc0;
+                    data[1] = 0x69;
+                    data[2] = 0x02;
+                    data[3] = (address & 0xFF);
+                    data[4] = ((address >> 8) & 0xFF);
+                    data[5] = Calc_CRC(data);
+                    nibeEmit.removeAllListeners(address);
+                    nibeEmit.once(address,(data) => {
+                        clearTimeout(getTimer[data.register]);
+                        resolve(data);
+                    })
+                    core.send({type:"reqData",data:data});
+                } else {
+                    reject(new Error('Register ('+address+') returned no data.'));
+                }
+                
+            }, 7000, address,index);
+            if(register[index].logset===undefined || register[index].logset===false) {
                 var data = [];
                 data[0] = 0xc0;
                 data[1] = 0x69;
@@ -375,43 +397,23 @@ async function getDataPromise(address) {
                 data[3] = (address & 0xFF);
                 data[4] = ((address >> 8) & 0xFF);
                 data[5] = Calc_CRC(data);
-                nibeEmit.removeAllListeners(address);
                 nibeEmit.once(address,(data) => {
                     clearTimeout(getTimer[data.register]);
                     resolve(data);
                 })
                 core.send({type:"reqData",data:data});
             } else {
-                reject(new Error('Register ('+address+') returned no data.'));
+                nibeEmit.once(address,(data) => {
+                    clearTimeout(getTimer[data.register]);
+                    resolve(data);
+                })
             }
-            
-        }, 7000, address,index);
-        if(register[index].logset===undefined || register[index].logset===false) {
-            var data = [];
-            data[0] = 0xc0;
-            data[1] = 0x69;
-            data[2] = 0x02;
-            data[3] = (address & 0xFF);
-            data[4] = ((address >> 8) & 0xFF);
-            data[5] = Calc_CRC(data);
-            nibeEmit.once(address,(data) => {
-                clearTimeout(getTimer[data.register]);
-                resolve(data);
-            })
-            core.send({type:"reqData",data:data});
         } else {
-            nibeEmit.once(address,(data) => {
-                clearTimeout(getTimer[data.register]);
-                resolve(data);
-            })
+            reject(new Error('Register ('+address+') not in database'));
         }
-    } else {
-        reject(new Error('Register ('+address+') not in database'));
+        });
+        return promise;
     }
-    });
-    return promise;
-}
-async function reqDataAsync (address) {
     const promise = new Promise((resolve,reject) => {
         if(core!==undefined && core.connected!==undefined && core.connected===true) {
             if(model.length!==0) {
@@ -430,49 +432,8 @@ async function reqDataAsync (address) {
     return promise;
     
 }
-const addRegular = (address) => {
-    if(core!==undefined && core.connected!==undefined && core.connected===true) {
-    let regIndex = register.findIndex(regIndex => regIndex.register == address);
-    if(register[regIndex]===undefined) return;
-    if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
-    let index = regQueue.findIndex(index => index == getData(address));
-    if(index===-1) {
-        if(address.toString().charAt(0)=="1") {
-            log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
-        } else {
-            // Req data change
-            reqDataAsync(address);
-            regQueue.push(getData(address));
-            log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
-            core.send({type:"regRegister",data:regQueue});
-        }
-        
-        //
-        
-    }
-} else {
-    setTimeout((data) => {
-        addRegular(data)
-    }, 10000, address);
-}
-}
-const removeRegular = (address) => {
-    var stringed = getData(address).toString();
-    if(core!==undefined && core.connected!==undefined && core.connected===true) {
-    for (i = 0; i < regQueue.length; i = i + 1) {
-        let value = regQueue[i].toString();
-        if(stringed===value) {
-            regQueue.splice(i,1)
-            log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
-            core.send({type:"regRegister",data:regQueue});
-        }
-    }
-} else {
-    setTimeout((data) => {
-        removeRegular(data);
-    }, 10000, address);
-}
-}
+
+
 const setData = (address,value,cb=()=>{}) => {
     var output = setDataValue({register:address,value:value})
     if(output===-1) {
@@ -491,7 +452,7 @@ const setData = (address,value,cb=()=>{}) => {
                 core.send({type:"rmuSet",data:output});
             } else {
                 core.send({type:"setData",data:output});
-                reqDataAsync(address);
+                reqData(address);
             }
             
         }
@@ -506,7 +467,7 @@ const setData = (address,value,cb=()=>{}) => {
                         core.send({type:"rmuSet",data:data});
                     } else {
                         core.send({type:"setData",data:data});
-                        reqDataAsync(address);
+                        reqData(address);
                     }
                 }
             }
@@ -757,6 +718,49 @@ const decodeRMU = (buf) => {
     }
 }
 const decodeMessage = (buf) => {
+    const addRegular = (address) => {
+        if(core!==undefined && core.connected!==undefined && core.connected===true) {
+        let regIndex = register.findIndex(regIndex => regIndex.register == address);
+        if(register[regIndex]===undefined) return;
+        if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+        let index = regQueue.findIndex(index => index == getData(address));
+        if(index===-1) {
+            if(address.toString().charAt(0)=="1") {
+                log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
+            } else {
+                // Req data change
+                reqData(address);
+                regQueue.push(getData(address));
+                log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
+                core.send({type:"regRegister",data:regQueue});
+            }
+            
+            //
+            
+        }
+    } else {
+        setTimeout((data) => {
+            addRegular(data)
+        }, 10000, address);
+    }
+    }
+    const removeRegular = (address) => {
+        var stringed = getData(address).toString();
+        if(core!==undefined && core.connected!==undefined && core.connected===true) {
+        for (i = 0; i < regQueue.length; i = i + 1) {
+            let value = regQueue[i].toString();
+            if(stringed===value) {
+                regQueue.splice(i,1)
+                log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
+                core.send({type:"regRegister",data:regQueue});
+            }
+        }
+    } else {
+        setTimeout((data) => {
+            removeRegular(data);
+        }, 10000, address);
+    }
+    }
     if(register.length===0) return;
     if(buf[3]!==104 && buf[3]!==106 && buf[3]!==98 && buf[3]!==96) return;
     var data;
@@ -1053,7 +1057,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                             if(err) return console.log(err);
                         });
                     } else if(topic.includes('get')) {
-                        reqDataAsync(topic[0]);
+                        reqData(topic[0]);
                     } else if(topic.includes('add')) {
                         addRegister(topic[0])
                     } else if(topic.includes('remove')) {
@@ -1170,7 +1174,7 @@ const writeLog = (data,plugin,level) => {
     return;
 }
 module.exports = {
-    reqDataAsync:reqDataAsync,
+    reqData:reqData,
     setData:setData,
     addRegister:addRegister,
     removeRegister:removeRegister,
