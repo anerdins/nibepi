@@ -769,6 +769,7 @@ const decodeMessage = (buf) => {
         var address = (buf[i + 1] * 256 + buf[i]);
         var index = register.findIndex(index => index.register == address);
         if (index!==-1) {
+
             if (buf[3]===104 || buf[3]===98 || buf[3]===96) {
                 addRegister(address,true)
             } else {
@@ -780,6 +781,7 @@ const decodeMessage = (buf) => {
             if (register[index].size == "s32") {
                 if (buf[3]===104) {
                     data = buf[i + 2] | buf[i + 3]<<8 | buf[i + 6] <<16 | buf[i + 7] <<24;
+                    
                     if (data >= 2147483647) {
                         data = (data - 4294967294);
                     }
@@ -788,6 +790,7 @@ const decodeMessage = (buf) => {
                 else {
                     data = buf[i + 4] | buf[i + 5] <<8 | buf[i + 2] <<16 | buf[i + 3] <<24;
                     //data = buf[i + 2] | buf[i + 3] <<8 | buf[i + 4] <<16 | buf[i + 5] <<24;
+                    
                     if (data >= 2147483647) {
                         data = (data - 4294967294);
                     }
@@ -796,6 +799,7 @@ const decodeMessage = (buf) => {
             }
             else if (register[index].size == "s16") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
                 if (data >= 32768) {
                     data = data - 65536;
@@ -803,6 +807,7 @@ const decodeMessage = (buf) => {
             }
             else if (register[index].size == "s8") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
                 if (data > 128 && data < 32768) {
                     data = data - 256;
@@ -814,6 +819,7 @@ const decodeMessage = (buf) => {
                 if (buf[3]===104) {
                     data = buf[i + 2] | buf[i + 3]<<8 | buf[i + 6] <<16 | buf[i + 7] <<24;
                     data = data>>>0;
+                    
                     i = i + 7;
                 }
                 else {
@@ -821,15 +827,18 @@ const decodeMessage = (buf) => {
                     //data = (buf[i + 2] & 0xFF) | (buf[i + 3] & 0xFF) << 8 | (buf[i + 4] & 0xFF) << 16 | (buf[i + 5] & 0xFF) << 24;
                     //data = (buf[i + 2] & 0xFF) << 16 | (buf[i + 3] & 0xFF) << 24 | (buf[i + 4] & 0xFF) | (buf[i + 5] & 0xFF) << 8; Old way
                     data = data>>>0;
+                    
                     i = i + 5;
                 }
             }
             else if (register[index].size == "u16") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
             }
             else if (register[index].size == "u8") {
                     data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                    
                     i = i + 3;
             }
             else {
