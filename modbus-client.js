@@ -2,7 +2,7 @@
 var ModbusRTU = require("modbus-serial");
 var client = new ModbusRTU();
 const getQueue = [];
-
+var red = false;
 process.on('message', (m) => {
     if(m.start===true) {
         // open connection to a tcp line
@@ -13,7 +13,7 @@ process.on('message', (m) => {
             if(client!==undefined) {
                 client.readInputRegisters(register, 1, function(err, data) {
                     if(data!==undefined) {
-                        console.log("3000"+register+": "+data.data);
+                        //console.log("3000"+register+": "+data.data);
                         if(process.connected===true) {
                             process.send({type:"data",data:{register:"3000"+register,data:data.data}});
                             process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
