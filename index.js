@@ -201,7 +201,7 @@ const resetCore = () => {
     register = [];
     firmware = "";
 }
-const initiateCore = (serialPort,cb) => {
+const initiateCore = (host,port,cb) => {
     if(config.log===undefined) config.log = {};
 if(config.system.readonly===true) {
     exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
@@ -223,36 +223,73 @@ if(config.system.readonly===true) {
         }
     })
 }
-    startCore(serialPort).then(result => {
-        core = result;
-        
-        core.on('message', (m) => {
-            if(m.type=="data") {
-                let n = m.data;
-                announcment(m, (err,ready) => {
-                    if(err) console.log(err);
-                    if(ready===true) {
-                        config.serial.port = serialPort;
-                        cb(null,result);
-                    } else {
-
+if(config.connection!==undefined && config.connection.series!==undefined) {
+    if(config.connection.series=="fSeries") {
+        startCore(port).then(result => {
+            core = result;
+            
+            core.on('message', (m) => {
+                if(m.type=="data") {
+                    let n = m.data;
+                    announcment(m, (err,ready) => {
+                        if(err) console.log(err);
+                        if(ready===true) {
+                            config.serial.port = serialPort;
+                            cb(null,result);
+                        } else {
+    
+                        }
+                    });
+                    decodeRMU(n);
+                    decodeMessage(n);
+                } else if(m.type=="fault") {
+                    nibeEmit.emit('fault',m.data);
+                } else if(m.type=="ack") {
+                    nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                } else if(m.type=="log") {
+                    if(config.log===undefined) {
+                        config.log = {};
+                        updateConfig(config);
                     }
-                });
-                decodeRMU(n);
-                decodeMessage(n);
-            } else if(m.type=="fault") {
-                nibeEmit.emit('fault',m.data);
-            } else if(m.type=="ack") {
-                nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
-            } else if(m.type=="log") {
-                if(config.log===undefined) {
-                    config.log = {};
-                    updateConfig(config);
+                    log(config.log.enable,m.data,config.log[m.level],m.kind);
                 }
-                log(config.log.enable,m.data,config.log[m.level],m.kind);
+              });
+        });
+    } else if(config.connection.series=="sSeries") {
+        if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
+            if(config.tcp!==undefined && config.tcp.host!==undefined) {
+                if(config.tcp!==undefined && config.tcp.port!==undefined) {
+                    startCoreS(host,port).then(result => {
+                        core = result;
+                        core.on('message', (m) => {
+                            if(m.type=="data") {
+                                let data = m.data;
+                                nibeEmit.emit('data',data);
+                                // Process message
+                            } else if(m.type=="fault") {
+                                nibeEmit.emit('fault',m.data);
+                            } else if(m.type=="log") {
+                                if(config.log===undefined) {
+                                    config.log = {};
+                                    updateConfig(config);
+                                }
+                                log(config.log.enable,m.data,config.log[m.level],m.kind);
+                            }
+                          });
+                    });
+                } else {
+                // Error TCP port not selected
+                }
+            } else {
+            // Error TCP host not selected
             }
-          });
-    });
+        } else {
+            // Error sSeries selected but TCP not selected
+        }
+    }
+    
+}
+    
 }
 
 
