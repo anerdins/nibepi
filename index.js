@@ -261,7 +261,13 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                     startCoreS(host,port).then(result => {
                         core = result;
                         core.on('message', (m) => {
-                            if(m.type=="data") {
+                            if(m.type=="started") {
+                                let data = m.data;
+                                if(data===true) {
+                                    cb(null,result);
+                                }
+                                // Process message
+                            } else if(m.type=="data") {
                                 let data = m.data;
                                 nibeEmit.emit('data',data);
                                 // Process message

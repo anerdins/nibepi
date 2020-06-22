@@ -8,7 +8,11 @@ process.on('message', (m) => {
         // open connection to a tcp line
         client.connectTCP(m.host, { port: m.port });
         client.setID(1);
-        console.log(client)
+        setTimeout(() => {
+            process.send({type:"started",data:true});
+            console.log(client)
+        }, 5000);
+        
     } else if(m.type=="reqData") {
         if(m.data.toString().charAt(0)=="3") {
             let register = Number(m.data)-30000;
