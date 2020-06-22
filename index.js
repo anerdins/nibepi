@@ -22,7 +22,9 @@ SOFTWARE.
 */
 //const path = __dirname;
 const path = "/etc/nibepi"
-const startCore = require('./lib/startCore')
+const Core = require('./lib/startCore')
+const startCore = Core.startCoreF;
+const startCoreS = Core.startCoreS;
 const stopCore = require('./lib/stopCore');
 var log = require('./log');
 var child = require('child_process');

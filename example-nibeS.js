@@ -1,4 +1,4 @@
-var nibe = require('index.js');
+var nibe = require('./index.js');
 const host = "192.168.1.23";
 const port = 502;
 const mqtt_host = "127.0.0.1";
