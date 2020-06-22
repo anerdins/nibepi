@@ -11,7 +11,12 @@ const mqtt_pass = "";
 nibe.initiateCore(host,port, function(err,core) {
     if(err) return console.log(err);
     console.log('Core is started.')
-    console.log(nibe.reqData(30001));
+    nibe.reqData(30001).then(result => {
+        console.log(result)
+    })
+    nibe.reqData(40001).then(result => {
+        console.log(result)
+    })
 })
 console.log('Waiting for the core to initiate...')
 /*
