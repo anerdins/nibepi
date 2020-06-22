@@ -258,9 +258,6 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
               });
         });
     } else if(config.connection.series=="sSeries") {
-        if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
-            if(config.tcp!==undefined && config.tcp.host!==undefined) {
-                if(config.tcp!==undefined && config.tcp.port!==undefined) {
                     startCoreS(host,port).then(result => {
                         core = result;
                         core.on('message', (m) => {
@@ -279,15 +276,6 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                             }
                           });
                     });
-                } else {
-                // Error TCP port not selected
-                }
-            } else {
-            // Error TCP host not selected
-            }
-        } else {
-            // Error sSeries selected but TCP not selected
-        }
     }
     
 }
