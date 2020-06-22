@@ -8,16 +8,16 @@ process.on('message', (m) => {
         // open connection to a tcp line
         client.connectTCP(m.host, { port: m.port });
         client.setID(1);
-        client.isOpen.on('initialized',(data) => {
+        client._port._client.on('initialized',(data) => {
             console.log(data)
         })
-        client.isOpen.on('error',(data) => {
+        client._port._client.on('error',(data) => {
             console.log(data)
         })
         setTimeout(() => {
             process.send({type:"started",data:true});
-            console.log(client)
-        }, 5000);
+            console.log(JSON.stringify(client,null,2))
+        }, 2000);
         
     } else if(m.type=="reqData") {
         if(m.data.toString().charAt(0)=="3") {

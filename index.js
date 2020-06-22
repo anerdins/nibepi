@@ -204,6 +204,8 @@ const resetCore = () => {
     firmware = "";
 }
 const initiateCore = (host,port,cb) => {
+    // TEST 
+    config.connection.series = "sSeries"
     if(config.log===undefined) config.log = {};
 if(config.system.readonly===true) {
     exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {

@@ -3,14 +3,14 @@ var Modbus = require("modbus-serial");
 var vector = {
     getInputRegister: function(addr, unitID) {
         // Synchronous handling
-        return addr;
+        return 185;
     },
     getHoldingRegister: function(addr, unitID, callback) {
         // Asynchronous handling (with callback)
 
         setTimeout(function() {
             // callback = function(err, value)
-            callback(null, addr + 40000);
+            callback(null, 285);
         }, 10);
     },
     getCoil: function(addr, unitID) {
@@ -51,6 +51,3 @@ serverTCP.on("socketError", function(err){
     // Handle socket error if needed, can be ignored
     console.error(err);
 });
-module.exports = {
-    getHoldingRegister:getHoldingRegister
-}
