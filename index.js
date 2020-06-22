@@ -270,6 +270,8 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                             } else if(m.type=="data") {
                                 let data = m.data;
                                 nibeEmit.emit('data',data);
+                                nibeEmit.emit(m.register,data);
+                                
                                 // Process message
                             } else if(m.type=="fault") {
                                 nibeEmit.emit('fault',m.data);
