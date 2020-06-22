@@ -9,8 +9,22 @@ client.setID(1);
 // read the values of 10 registers starting at address 0
 // on device number 1. and log the values to the console.
 setInterval(function() {
-    client.readHoldingRegisters(43144, 1, function(err, data) {
-        //if(err) console.log(err)
+    client.readInputRegisters(1, 1, function(err, data) {
             console.log(data);
     });
+    client.readInputRegisters(1, 1, function(err, data) {
+        console.log(data);
+});
+client.readInputRegisters(1, 1, function(err, data) {
+    console.log(data);
+});
+client.readInputRegisters(1, 1, function(err, data) {
+    console.log(data);
+});
+client.readInputRegisters(1, 1, function(err, data) {
+    console.log(data);
+});
+client.readInputRegisters(1, 1, function(err, data) {
+    console.log(data);
+});
 }, 2000);
