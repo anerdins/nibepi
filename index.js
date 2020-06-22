@@ -270,6 +270,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                                 }
                                 // Process message
                             } else if(m.type=="data") {
+                                console.log(m)
                                 let data = m.data;
                                 nibeEmit.emit('data',data);
                                 nibeEmit.emit(m.register,data);
