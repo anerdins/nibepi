@@ -6,12 +6,6 @@ var red = false;
 process.on('message', (m) => {
     if(m.start===true) {
         // open connection to a tcp line
-        client._port._client.on('initialized',(data) => {
-            console.log(data)
-        })
-        client._port._client.on('error',(data) => {
-            console.log(data)
-        })
         client.connectTCP(m.host, { port: m.port });
         client.setID(1);
         
