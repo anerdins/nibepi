@@ -16,7 +16,7 @@ process.on('message', (m) => {
         })
         setTimeout(() => {
             process.send({type:"started",data:true});
-            console.log(JSON.stringify(client,null,2))
+            console.log(JSON.stringify(client_port,null,2))
         }, 2000);
         
     } else if(m.type=="reqData") {
