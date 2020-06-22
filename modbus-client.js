@@ -8,30 +8,37 @@ process.on('message', (m) => {
         // open connection to a tcp line
         client.connectTCP(m.host, { port: m.port });
         client.setID(1);
-        setInterval(function() {
-            let register = 1
+        console.log(client)
+    } else if(m.type=="reqData") {
+        if(m.data.toString().charAt(0)=="3") {
+            let register = Number(m.data)-30000;
+            // Get input register
             if(client!==undefined) {
                 client.readInputRegisters(register, 1, function(err, data) {
                     if(data!==undefined) {
-                        //console.log("3000"+register+": "+data.data);
                         if(process.connected===true) {
-                            process.send({type:"data",data:{register:"3000"+register,data:data.data}});
-                            process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
+                            process.send({type:"data",data:{register:register,data:data.data}});
+                            //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
                         }
                     }
-                    
                 });
             }
-            
-        }, 2000);
-    } else if(m.type=="reqData") {
-        //getQueue.unshift(m.data);
+        } else if(m.data.toString().charAt(0)=="4") {
+            // Get holding register
+            let register = Number(m.data)-40000;
+            if(client!==undefined) {
+                client.readHoldingRegisters(register, 1, function(err, data) {
+                    if(data!==undefined) {
+                        if(process.connected===true) {
+                            process.send({type:"data",data:{register:register,data:data.data}});
+                            //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
+                        }
+                    }
+                });
+            }
+        }
     } else if(m.type=="setData") {
         //sendQueue.push(m.data);
-    } else if(m.type=="rmuSet") {
-        //rmuQueue.push(m.data);
-    } else if(m.type=="regRegister") {
-        //regQueue = m.data;
     } else if(m.type=="red") {
         //red = m.data;
     }

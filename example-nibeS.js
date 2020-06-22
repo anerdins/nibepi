@@ -9,6 +9,7 @@ const mqtt_pass = "";
 nibe.initiateCore(host,port, function(err,core) {
     if(err) return console.log(err);
     console.log('Core is started.')
+    console.log(nibe.reqData(30001));
 })
 console.log('Waiting for the core to initiate...')
 /*
@@ -23,5 +24,5 @@ nibe.handleMQTT(true,mqtt_host,mqtt_port,mqtt_user,mqtt_pass,function(err,result
 console.log('Waiting for MQTT')
 */
 nibe.data.on('data',data => {
-    console.log(`${data.register}: ${data.data}`)
+    console.log(`LOG: ${data.register}: ${data.data}`)
 })

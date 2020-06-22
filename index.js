@@ -387,7 +387,7 @@ const announcment = (msg,cb) => {
 let getTimer = {};
 
 async function reqData (address) {
-    async function getDataPromise(address) {
+    async function getDataFseries(address) {
         const promise = new Promise((resolve,reject) => {
         let index = register.findIndex(index => index.register == address);
         if(index!==-1) {
@@ -441,17 +441,41 @@ async function reqData (address) {
         });
         return promise;
     }
+    async function getDataSseries(address) {
+        const promise = new Promise((resolve,reject) => {
+            getTimer[address] = setTimeout((address) => {
+                nibeEmit.removeAllListeners(address);
+                reject(new Error('No respond from register ('+address+')'));
+            }, 30000, address);
+            nibeEmit.once(address,(data) => {
+                resolve(data);
+                clearTimeout(getTimer[data.register]);
+            });
+            core.send({type:"reqData",data:address});
+        });
+        return promise;
+    }
     const promise = new Promise((resolve,reject) => {
         if(core!==undefined && core.connected!==undefined && core.connected===true) {
-            if(model.length!==0) {
-                getDataPromise(address).then(result => {
+            if(config.connection===undefined || config.connection.series===undefined) return reject(new Error('Configuration is invalid'));
+            if(config.connection.series=="fSeries") {
+                if(model.length!==0) {
+                    getDataFseries(address).then(result => {
+                        resolve(result)
+                    },(error => {
+                        reject(error)
+                    }));
+                } else {
+                    reject(new Error('Heatpump is not ready yet.'))
+                }
+            } else if(config.connection.series=="sSeries") {
+                getDataSseries(address).then(result => {
                     resolve(result)
                 },(error => {
                     reject(error)
                 }));
-            } else {
-                reject(new Error('Heatpump is not ready yet.'))
             }
+            
         } else {
             reject(new Error('Core is not started.'))
         }
