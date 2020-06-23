@@ -512,7 +512,9 @@ async function reqData (address) {
                     resolve(result)
                 },(error => {
                     reject(error)
-                }));
+                })).catch(err => {
+                    reject(error)
+                });
             }
             
         } else {

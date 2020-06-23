@@ -16,7 +16,9 @@ nibe.initiateCore(host,port, function(err,core) {
     })
     nibe.reqData(40001).then(result => {
         console.log(result)
-    })
+    }).catch(err => {
+        console.log(err)
+    });
 })
 console.log('Waiting for the core to initiate...')
 
