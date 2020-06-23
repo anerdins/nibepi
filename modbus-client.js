@@ -6,7 +6,7 @@ var regQueue = [30001,40026];
 var red = false;
 async function requestData(address) {
     const promise = new Promise((resolve,reject) => {
-        if(register.toString().charAt(0)=="3") {
+        if(address.toString().charAt(0)=="3") {
             let register = Number(address)-30000;
             // Get input register
             if(client!==undefined) {
@@ -24,7 +24,7 @@ async function requestData(address) {
                     }
                 });
             }
-        } else if(register.toString().charAt(0)=="4") {
+        } else if(address.toString().charAt(0)=="4") {
             // Get holding register
             let register = Number(address)-40000;
             if(client!==undefined) {
