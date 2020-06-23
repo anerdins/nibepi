@@ -476,15 +476,21 @@ async function reqData (address) {
     }
     async function getDataSseries(address) {
         const promise = new Promise((resolve,reject) => {
-            getTimer[address] = setTimeout((address) => {
-                nibeEmit.removeAllListeners(address);
-                reject(new Error('No respond from register ('+address+')'));
-            }, 30000, address);
-            nibeEmit.once(address,(data) => {
-                resolve(data);
-                clearTimeout(getTimer[data.register]);
-            });
-            core.send({type:"reqData",data:address});
+            let index = register.findIndex(index => index.register == address);
+            if(index!==-1) {
+                getTimer[address] = setTimeout((address) => {
+                    nibeEmit.removeAllListeners(address);
+                    reject(new Error('No respond from register ('+address+')'));
+                }, 30000, address);
+                nibeEmit.once(address,(data) => {
+                    resolve(data);
+                    clearTimeout(getTimer[data.register]);
+                });
+                core.send({type:"reqData",data:address});
+            } else {
+                reject(new Error('Register ('+address+') not in database'));
+            }
+            
         });
         return promise;
     }
