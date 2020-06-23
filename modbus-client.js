@@ -53,7 +53,7 @@ process.on('message', (m) => {
         client.connectTCP(m.host, { port: m.port });
         client.setID(1);
         
-        setTimeout(() => {
+        setTimeout(async () => {
             process.send({type:"started",data:true});
             for( var i = 0; i < regQueue.length; i++){
                 await requestData(regQueue[i]);
