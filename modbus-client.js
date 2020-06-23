@@ -57,7 +57,7 @@ process.on('message', (m) => {
             process.send({type:"started",data:true});
             for( var i = 0; i < regQueue.length; i++){
                 await requestData(regQueue[i]);
-                if(regQueue[i]===regQueue.length-1) i=0;
+                if(i===regQueue.length-1) i=0;
             }
         }, 2000);
         
