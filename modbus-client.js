@@ -56,13 +56,19 @@ process.on('message', (m) => {
         setTimeout(async () => {
             process.send({type:"started",data:true});
             for( var i = 0; i < regQueue.length; i++){
-                await requestData(regQueue[i]);
+                if(getQueue!==undefined && getQueue.length!==0) {
+                    var lastMsg = getQueue.pop();
+                    await requestData(lastMsg);
+                    i--;
+                } else {
+                    await requestData(regQueue[i]);
+                }
                 if(i===regQueue.length-1) i=-1;
             }
         }, 2000);
         
     } else if(m.type=="reqData") {
-        requestData(m.data);
+        getQueue.unshift(m.data);
     } else if(m.type=="regRegister") {
         regQueue = m.data;
     } else if(m.type=="setData") {
