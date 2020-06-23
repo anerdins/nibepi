@@ -265,6 +265,29 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                         core.on('message', (m) => {
                             if(m.type=="started") {
                                 let data = m.data;
+                                if(config.tcp!==undefined && config.tcp.pump!==undefined) {
+                                    let reg = require(pumpModel[config.tcp.pump]);
+                                    if(reg!==undefined) {
+                                        for (i = 0; i < reg.length; i = i + 1) {
+                                            let found = false;
+                                            for (j = 0; j < register.length; j = j + 1) {
+                                                if(register[j].register===reg[i].register) {
+                                                    found = true;
+                                                }
+                                            }
+                                            if(found===false) {
+                                                register.push(reg[i])
+                                            }
+                                        }
+                                        if(regQueue.length===0) {
+                                            for (var i = 0; i < config.registers.length; i++) {
+                                                addRegular(config.registers[i]);
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                                
                                 if(data===true) {
                                     cb(null,result);
                                 }
@@ -538,6 +561,7 @@ const setData = (address,value,cb=()=>{}) => {
 function getData(address) {
     var item = register.find(item => item.register == address);
     if(item!==undefined) {
+        if(config.connection.enable!==undefined && config.connection.enable=="serial") {
             var data = [];
             data[0] = 0xc0;
             data[1] = 0x69;
@@ -546,6 +570,10 @@ function getData(address) {
             data[4] = ((address >> 8) & 0xFF);
             data[5] = Calc_CRC(data);
             return(data);
+        } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
+            return(address);
+        }
+            
     } else {
         console.log('Register('+address+') not in database');
         return;
@@ -576,58 +604,63 @@ function setDataValue(incoming) {
                     }
                 }
             }
-            if(item.register.charAt(0)=="1") {
-                let len = 0x03;
-                if(item.size=="s8" || item.size=="u8") {
-                    len = 0x02;
-                }
-                rmu.data[0] = 0xc0;
-                rmu.data[1] = 0x60;
-                rmu.data[2] = len;
-                rmu.data[3] = Number(item.register.charAt(3));
-                if(item.size=="s8" || item.size=="u8") {
-                    rmu.data[4] = (incoming.value & 0xFF);
-                    rmu.data[5] = Calc_CRC(rmu.data);
+            if(config.connection.enable!==undefined && config.connection.enable=="serial") {
+                if(item.register.charAt(0)=="1") {
+                    let len = 0x03;
+                    if(item.size=="s8" || item.size=="u8") {
+                        len = 0x02;
+                    }
+                    rmu.data[0] = 0xc0;
+                    rmu.data[1] = 0x60;
+                    rmu.data[2] = len;
+                    rmu.data[3] = Number(item.register.charAt(3));
+                    if(item.size=="s8" || item.size=="u8") {
+                        rmu.data[4] = (incoming.value & 0xFF);
+                        rmu.data[5] = Calc_CRC(rmu.data);
+                    } else {
+                        let value = incoming.value;
+                        if(value>=32768) { value = value-7 } else { value = value+7 }
+                        rmu.data[4] = (value & 0xFF);
+                        rmu.data[5] = ((value >> 8) & 0xFF);
+                        rmu.data[6] = Calc_CRC(rmu.data);
+                    } 
+                    rmu.ackback[0] = 92;
+                    rmu.ackback[1] = 0;
+                    rmu.ackback[2] = (Number(item.register.charAt(2))+25);
+                    rmu.ackback[3] = 96;
+                    rmu.ackback[4] = 6;
+                    rmu.ackback[5] = (incoming.register & 0xFF);
+                    rmu.ackback[6] = ((incoming.register >> 8) & 0xFF);
+                    rmu.ackback[7] = (incoming.value & 0xFF);
+                    rmu.ackback[8] = ((incoming.value >> 8) & 0xFF);
+                    rmu.ackback[9] = ((incoming.value >> 16) & 0xFF);
+                    rmu.ackback[10] = ((incoming.value >> 24) & 0xFF);
+                    rmu.ackback[11] = Calc_CRC(rmu.ackback);
                 } else {
-                    let value = incoming.value;
-                    if(value>=32768) { value = value-7 } else { value = value+7 }
-                    rmu.data[4] = (value & 0xFF);
-                    rmu.data[5] = ((value >> 8) & 0xFF);
-                    rmu.data[6] = Calc_CRC(rmu.data);
-                } 
-                rmu.ackback[0] = 92;
-                rmu.ackback[1] = 0;
-                rmu.ackback[2] = (Number(item.register.charAt(2))+25);
-                rmu.ackback[3] = 96;
-                rmu.ackback[4] = 6;
-                rmu.ackback[5] = (incoming.register & 0xFF);
-                rmu.ackback[6] = ((incoming.register >> 8) & 0xFF);
-                rmu.ackback[7] = (incoming.value & 0xFF);
-                rmu.ackback[8] = ((incoming.value >> 8) & 0xFF);
-                rmu.ackback[9] = ((incoming.value >> 16) & 0xFF);
-                rmu.ackback[10] = ((incoming.value >> 24) & 0xFF);
-                rmu.ackback[11] = Calc_CRC(rmu.ackback);
-            } else {
-                data[0] = 0xc0;
-                data[1] = 0x6b;
-                data[2] = 0x06;
-                data[3] = (incoming.register & 0xFF);
-                data[4] = ((incoming.register >> 8) & 0xFF);
-                data[5] = (incoming.value & 0xFF);
-                data[6] = ((incoming.value >> 8) & 0xFF);
-                data[7] = ((incoming.value >> 16) & 0xFF);
-                data[8] = ((incoming.value >> 24) & 0xFF);
-                data[9] = Calc_CRC(data);
-            }
-            if(corruptData===undefined) {
-                log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}, ${JSON.stringify(data)}`,config.log['info'],"Data");
-                if(data.length===0) {
-                    return rmu;
-                } else {
-                    return data;
+                    data[0] = 0xc0;
+                    data[1] = 0x6b;
+                    data[2] = 0x06;
+                    data[3] = (incoming.register & 0xFF);
+                    data[4] = ((incoming.register >> 8) & 0xFF);
+                    data[5] = (incoming.value & 0xFF);
+                    data[6] = ((incoming.value >> 8) & 0xFF);
+                    data[7] = ((incoming.value >> 16) & 0xFF);
+                    data[8] = ((incoming.value >> 24) & 0xFF);
+                    data[9] = Calc_CRC(data);
                 }
-            } else {
-
+                if(corruptData===undefined) {
+                    log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}, ${JSON.stringify(data)}`,config.log['info'],"Data");
+                    if(data.length===0) {
+                        return rmu;
+                    } else {
+                        return data;
+                    }
+                }
+            } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
+                if(corruptData===undefined) {
+                    log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}`,config.log['info'],"Data");
+                    return incoming.value;
+                }
             }
         } else {
             nibeEmit.emit('fault',{from:"Skicka värde",message:'Register('+incoming.register+') går ej att skriva till.'});
@@ -687,7 +720,49 @@ function removeRegister(address) {
     }
   }
   }
-
+  const addRegular = (address) => {
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+    let regIndex = register.findIndex(regIndex => regIndex.register == address);
+    if(register[regIndex]===undefined) return;
+    if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+    let index = regQueue.findIndex(index => index == getData(address));
+    if(index===-1) {
+        if(address.toString().charAt(0)=="1") {
+            log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
+        } else {
+            // Req data change
+            reqData(address);
+            regQueue.push(getData(address));
+            log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+        
+        //
+        
+    }
+} else {
+    setTimeout((data) => {
+        addRegular(data)
+    }, 10000, address);
+}
+}
+  const removeRegular = (address) => {
+    var stringed = getData(address).toString();
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+    for (i = 0; i < regQueue.length; i = i + 1) {
+        let value = regQueue[i].toString();
+        if(stringed===value) {
+            regQueue.splice(i,1)
+            log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+    }
+} else {
+    setTimeout((data) => {
+        removeRegular(data);
+    }, 10000, address);
+}
+}
 const decodeRMU = (buf) => {
     if((buf[2]==0x19 || buf[2]==0x1A || buf[2]==0x1B || buf[2]==0x1C) && buf[3]===98) {
         let data = [];
@@ -779,49 +854,8 @@ const decodeRMU = (buf) => {
     }
 }
 const decodeMessage = (buf) => {
-    const addRegular = (address) => {
-        if(core!==undefined && core.connected!==undefined && core.connected===true) {
-        let regIndex = register.findIndex(regIndex => regIndex.register == address);
-        if(register[regIndex]===undefined) return;
-        if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
-        let index = regQueue.findIndex(index => index == getData(address));
-        if(index===-1) {
-            if(address.toString().charAt(0)=="1") {
-                log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
-            } else {
-                // Req data change
-                reqData(address);
-                regQueue.push(getData(address));
-                log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
-                core.send({type:"regRegister",data:regQueue});
-            }
-            
-            //
-            
-        }
-    } else {
-        setTimeout((data) => {
-            addRegular(data)
-        }, 10000, address);
-    }
-    }
-    const removeRegular = (address) => {
-        var stringed = getData(address).toString();
-        if(core!==undefined && core.connected!==undefined && core.connected===true) {
-        for (i = 0; i < regQueue.length; i = i + 1) {
-            let value = regQueue[i].toString();
-            if(stringed===value) {
-                regQueue.splice(i,1)
-                log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
-                core.send({type:"regRegister",data:regQueue});
-            }
-        }
-    } else {
-        setTimeout((data) => {
-            removeRegular(data);
-        }, 10000, address);
-    }
-    }
+    
+    
     if(register.length===0) return;
     if(buf[3]!==104 && buf[3]!==106 && buf[3]!==98 && buf[3]!==96) return;
     var data;
