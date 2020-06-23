@@ -4,10 +4,10 @@ var client = new ModbusRTU();
 const getQueue = [];
 var regQueue = [30001,40026];
 var red = false;
-async function requestData(register) {
+async function requestData(address) {
     const promise = new Promise((resolve,reject) => {
         if(register.toString().charAt(0)=="3") {
-            let register = Number(register)-30000;
+            let register = Number(address)-30000;
             // Get input register
             if(client!==undefined) {
                 client.readInputRegisters(register, 1, function(err, data) {
@@ -15,7 +15,7 @@ async function requestData(register) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
-                            process.send({type:"data",data:{register:register,data:data.data}});
+                            process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
                         }
@@ -26,14 +26,14 @@ async function requestData(register) {
             }
         } else if(register.toString().charAt(0)=="4") {
             // Get holding register
-            let register = Number(register)-40000;
+            let register = Number(address)-40000;
             if(client!==undefined) {
                 client.readHoldingRegisters(register, 1, function(err, data) {
                     if(err) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
-                            process.send({type:"data",data:{register:register,data:data.data}});
+                            process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
                         }
