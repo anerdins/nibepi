@@ -5,7 +5,7 @@ const mqtt_port = "1883"
 const mqtt_user = "";
 const mqtt_pass = "";
 
-nibe.initiateCore(serialPort, function(err,core) {
+nibe.initiateCore(null,port, function(err,core) {
     if(err) return console.log(err);
     console.log('Core is started.')
 })
