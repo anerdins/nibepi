@@ -4,6 +4,19 @@ var client = new ModbusRTU();
 const getQueue = [];
 var regQueue = [30001,40026];
 var red = false;
+async function writeData(address,value) {
+    const promise = new Promise((resolve,reject) => {
+    let register = Number(address)-40000;
+    client.writeRegisters(register, value)
+        .then(data => {
+            console.log(data);
+            resolve(data)
+        });
+    }).catch((err => {
+        reject(err)
+    }));
+    return promise;
+}
 async function requestData(address) {
     const promise = new Promise((resolve,reject) => {
         if(address.toString().charAt(0)=="3") {
@@ -72,7 +85,18 @@ process.on('message', (m) => {
     } else if(m.type=="regRegister") {
         regQueue = m.data;
     } else if(m.type=="setData") {
-        //sendQueue.push(m.data);
+        let register = m.data.register;
+        let value = m.data.value;
+        writeData(register,value)
+            .then(data => {
+                if(process.connected===true) {
+                    process.send({type:"ack",data:{register:register,ack:true}});
+                }
+            }).catch(err => {
+                if(process.connected===true) {
+                    process.send({type:"ack",data:{register:register,ack:false}});
+                }
+            })
     } else if(m.type=="red") {
         //red = m.data;
     }

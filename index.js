@@ -294,10 +294,9 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                                 // Process message
                             } else if(m.type=="data") {
                                 let data = m.data;
-                                nibeEmit.emit('data',data);
-                                nibeEmit.emit(data.register,data);
-                                
-                                // Process message
+                                decodeS(data);
+                            } else if(m.type=="ack") {
+                                nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
                             } else if(m.type=="fault") {
                                 nibeEmit.emit('fault',m.data);
                             } else if(m.type=="log") {
@@ -667,7 +666,7 @@ function setDataValue(incoming) {
             } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
                 if(corruptData===undefined) {
                     log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}`,config.log['info'],"Data");
-                    return incoming.value;
+                    return {register:incoming.register,value:incoming.value};
                 }
             }
         } else {
@@ -859,6 +858,41 @@ const decodeRMU = (buf) => {
         /*
         if(i===26) address = 10011; 
         if(i===27) address = 10012;*/
+    }
+}
+async function decodeS(data) {
+    if(register.length===0) return;
+    let address = data.register;
+    data = data.data;
+    let timeNow = Date.now();
+    var index = register.findIndex(index => index.register == address);
+    if (index!==-1) {
+        data = data / register[index].factor;
+        let corruptData = false;
+        let min = Number(register[index].min);
+        let max = Number(register[index].max);
+        if (min !== undefined && max !== undefined) {
+            if (min !== 0 || max !== 0) {
+                if ((data > max / register[index].factor) || (data < min / register[index].factor)) {
+                    nibeEmit.emit('fault',{from:"Datahantering",message:'Korrupt värde från register '+address+", Värde: "+data+register[index].unit});
+                    log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['error'],"CORRUPT");
+                    corruptData = true;
+                }
+            }
+        }
+        if(corruptData===false) {
+            register[index].data = data;
+            register[index].raw_data = data;
+            register[index].timestamp = timeNow;
+            nibeEmit.emit('data',register[index]);
+            nibeEmit.emit(address,register[index]);
+            addMQTTdiscovery(register[index]);
+            publishMQTT(config.mqtt.topic+address+"/json",JSON.stringify(register[index]))
+            publishMQTT(config.mqtt.topic+address+"/raw",register[index].raw_data)
+            publishMQTT(config.mqtt.topic+address,register[index].data)
+            log(config.log.enable,JSON.stringify(register[index]),config.log['debug'],"Data");
+            log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['info'],"Data");
+        }
     }
 }
 const decodeMessage = (buf) => {
