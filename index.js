@@ -717,50 +717,51 @@ const decodeRMU = (buf) => {
         if(i===27) address = 10012;*/
     }
 }
+const addRegular = (address) => {
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+    let regIndex = register.findIndex(regIndex => regIndex.register == address);
+    if(register[regIndex]===undefined) return;
+    if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+    let index = regQueue.findIndex(index => index == getData(address));
+    if(index===-1) {
+        if(address.toString().charAt(0)=="1") {
+            log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
+        } else {
+            // Req data change
+            reqData(address);
+            regQueue.push(getData(address));
+            log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+        
+        //
+        
+    }
+} else {
+    setTimeout((data) => {
+        addRegular(data)
+    }, 10000, address);
+}
+}
+const removeRegular = (address) => {
+    var stringed = getData(address).toString();
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+    for (i = 0; i < regQueue.length; i = i + 1) {
+        let value = regQueue[i].toString();
+        if(stringed===value) {
+            regQueue.splice(i,1)
+            log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+    }
+} else {
+    setTimeout((data) => {
+        removeRegular(data);
+    }, 10000, address);
+}
+}
 const decodeMessage = (buf) => {
-    const addRegular = (address) => {
-        if(core!==undefined && core.connected!==undefined && core.connected===true) {
-        let regIndex = register.findIndex(regIndex => regIndex.register == address);
-        if(register[regIndex]===undefined) return;
-        if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
-        let index = regQueue.findIndex(index => index == getData(address));
-        if(index===-1) {
-            if(address.toString().charAt(0)=="1") {
-                log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
-            } else {
-                // Req data change
-                reqData(address);
-                regQueue.push(getData(address));
-                log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
-                core.send({type:"regRegister",data:regQueue});
-            }
-            
-            //
-            
-        }
-    } else {
-        setTimeout((data) => {
-            addRegular(data)
-        }, 10000, address);
-    }
-    }
-    const removeRegular = (address) => {
-        var stringed = getData(address).toString();
-        if(core!==undefined && core.connected!==undefined && core.connected===true) {
-        for (i = 0; i < regQueue.length; i = i + 1) {
-            let value = regQueue[i].toString();
-            if(stringed===value) {
-                regQueue.splice(i,1)
-                log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
-                core.send({type:"regRegister",data:regQueue});
-            }
-        }
-    } else {
-        setTimeout((data) => {
-            removeRegular(data);
-        }, 10000, address);
-    }
-    }
+
     if(register.length===0) return;
     if(buf[3]!==104 && buf[3]!==106 && buf[3]!==98 && buf[3]!==96) return;
     var data;
