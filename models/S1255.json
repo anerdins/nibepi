@@ -21,5 +21,20 @@
 {"register":"40034","factor":"10","size":"s16","mode":"R/W","titel":"Min framledning","info":"","unit":"°C","min":"0","max":"0"},
 {"register":"40036","factor":"10","size":"s16","mode":"R/W","titel":"Max framledning","info":"","unit":"°C","min":"0","max":"0"},
 {"register":"31017","factor":"10","size":"s16","mode":"R","titel":"Beräknad framledning S1","info":"","unit":"°C","min":"0","max":"0"},
-{"register":"40026","factor":"1","size":"s8","mode":"R/W","titel":"Värmekurva S1","info":"","unit":"","min":"0","max":"0"}
+{"register":"40026","factor":"1","size":"s8","mode":"R/W","titel":"Värmekurva S1","info":"","unit":"","min":"0","max":"0"},
+{"register":"40030","factor":"1","size":"s8","mode":"R/W","titel":"Kurvjustering S1","info":"","unit":"°C","min":"0","max":"0"},
+{"register":"40025","factor":"1","size":"s8","mode":"R/W","titel":"Värmekurva S2","info":"TEST","unit":"","min":"0","max":"0"},
+{"register":"40029","factor":"1","size":"s8","mode":"R/W","titel":"Kurvjustering S2","info":"TEST","unit":"°C","min":"0","max":"0"},
+{"register":"40018","factor":"1","size":"s16","mode":"R/W","titel":"Gradminuter","info":"","unit":"°M","min":"0","max":"0"},
+{"register":"31975","factor":"1","size":"u16","mode":"R","titel":"Larm","info":"Larmnummer","unit":"","min":"0","max":"0"},
+{"register":"40022","factor":"1","size":"u8","mode":"R/W","titel":"Larmåterställning","info":"Återställer larm","unit":"","min":"0","max":"0"},
+{"register":"30004","factor":"10","size":"s16","mode":"R","titel":"BT2 S2","info":"Framledningstemperatur för klimatsystem 2","unit":"°C","min":"0","max":"0"},
+{"register":"30077","factor":"10","size":"s16","mode":"R","titel":"BT3 S2","info":"Returledningstemperatur för klimatsystem 2","unit":"°C","min":"0","max":"0"},
+{"register":"40056","factor":"1","size":"s8","mode":"R/W","titel":"Varmvattenkomfort","info":"","unit":"","min":"0","max":"0"},
+{"register":"31025","factor":"10","size":"s32","mode":"R","titel":"Total tillsats tid","info":"","unit":"h","min":"0","max":"0"},
+{"register":"31558","factor":"1","size":"u8","mode":"R","titel":"Driftprio EP14","info":"","unit":"","min":"0","max":"0"},
+{"register":"31557","factor":"1","size":"u8","mode":"R","titel":"Driftprio EP15","info":"","unit":"","min":"0","max":"0"},
+{"register":"31028","factor":"1","size":"u8","mode":"R","titel":"Driftprio","info":"","unit":"","min":"0","max":"0"},
+{"register":"31087","factor":"10","size":"s32","mode":"R","titel":"Kompressortid","info":"","unit":"h","min":"0","max":"0"}
+
 ]
