@@ -2,7 +2,7 @@
 var ModbusRTU = require("modbus-serial");
 var client = new ModbusRTU();
 const getQueue = [];
-var regQueue = [30001,40026];
+var regQueue = [30001];
 var red = false;
 async function writeData(item) {
     let address = item.register;
@@ -12,7 +12,7 @@ async function writeData(item) {
     if(item.size=="u8" || item.size=="s8") size = 0xFF;
     if(item.size=="u32" || item.size=="s32") size = 0xFFFFFFFF;
     
-    client.writeRegisters(item.register, [item.value,size])
+    client.writeRegisters(register, [item.data,size])
         .then(data => {
             console.log(data);
             resolve(data)
