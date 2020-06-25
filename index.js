@@ -665,7 +665,7 @@ function setDataValue(incoming) {
                 }
             } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
                 if(corruptData===undefined) {
-                    item.data = value;
+                    item.data = incoming.value;
                     log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}`,config.log['info'],"Data");
                     return item;
                 }
