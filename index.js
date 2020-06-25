@@ -868,6 +868,26 @@ async function decodeS(data) {
     let timeNow = Date.now();
     var index = register.findIndex(index => index.register == address);
     if (index!==-1) {
+        if (register[index].size == "s32") {
+            if (data >= 2147483647) {
+                data = (data - 4294967294);
+            }
+        }
+        else if (register[index].size == "s16") {
+            if (data >= 32768) {
+                data = data - 65536;
+            }          
+        }
+        else if (register[index].size == "s8") {
+            if (data > 128 && data < 32768) {
+                data = data - 256;
+            } else if (data >= 32768) {
+                data = data - 65536;
+            }
+        }
+        else if (register[index].size == "u32") {
+            data = data>>>0;
+        }
         data = data / register[index].factor;
         let corruptData = false;
         let min = Number(register[index].min);
