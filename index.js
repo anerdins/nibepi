@@ -690,7 +690,7 @@ function Calc_CRC(data) {
 const addRegister = (address,logset=false) => {
     if(register.length!==0)  {
         let index = register.findIndex(index => index.register == address);
-        if(index===-1) {
+        if(index===-1 && config.system.testmode!==true) {
             return;
         };
         if(config.registers===undefined) {
@@ -712,7 +712,7 @@ const addRegister = (address,logset=false) => {
 function removeRegister(address) {
     if(register!==[] && register.length>1)  {
     let index = register.findIndex(index => index.register == address);
-    if(index===-1) {
+    if(index===-1 || config.system.testmode===true) {
         return;
     };
     if(config.registers===undefined) {
