@@ -204,8 +204,6 @@ const resetCore = () => {
     firmware = "";
 }
 const initiateCore = (host,port,cb) => {
-    // TEST 
-    config.connection.series = "sSeries"
     if(config.log===undefined) config.log = {};
 if(config.system.readonly===true) {
     exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
@@ -238,7 +236,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                     announcment(m, (err,ready) => {
                         if(err) console.log(err);
                         if(ready===true) {
-                            config.serial.port = serialPort;
+                            config.serial.port = port;
                             cb(null,result);
                         } else {
     
