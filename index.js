@@ -474,7 +474,7 @@ async function reqData (address) {
     async function getDataSseries(address) {
         const promise = new Promise((resolve,reject) => {
             let index = register.findIndex(index => index.register == address);
-            if(index!==-1 || config.system.testmode===true) {
+            if(index!==-1 || (config.system.testmode===true && address!=="00000")) {
                 getTimer[address] = setTimeout((address) => {
                     nibeEmit.removeAllListeners(address);
                     reject(new Error('No respond from register ('+address+')'));
@@ -710,7 +710,7 @@ const addRegister = (address,logset=false) => {
 function removeRegister(address) {
     if(register!==[] && register.length>1)  {
     let index = register.findIndex(index => index.register == address);
-    if(index===-1 || config.system.testmode===true) {
+    if(index===-1 || (config.system.testmode===true && address!=="00000")) {
         return;
     };
     if(config.registers===undefined) {
@@ -912,7 +912,7 @@ async function decodeS(data) {
             log(config.log.enable,JSON.stringify(register[index]),config.log['debug'],"Data");
             log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['info'],"Data");
         }
-    } else if(config.system.testmode===true) {
+    } else if((config.system.testmode===true && address!=="00000")) {
         let output = {
             register:address,
             data:data,
