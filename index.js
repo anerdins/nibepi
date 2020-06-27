@@ -474,7 +474,7 @@ async function reqData (address) {
     async function getDataSseries(address) {
         const promise = new Promise((resolve,reject) => {
             let index = register.findIndex(index => index.register == address);
-            if(index!==-1 || (config.system.testmode===true && address!=="00000")) {
+            if(index!==-1 || (address!==undefined && config.system.testmode===true && address!=="00000")) {
                 getTimer[address] = setTimeout((address) => {
                     nibeEmit.removeAllListeners(address);
                     reject(new Error('No respond from register ('+address+')'));
