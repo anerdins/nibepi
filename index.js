@@ -695,7 +695,7 @@ const addRegister = (address,logset=false) => {
             config.registers = [];
             updateConfig(config)
         }
-        register[index].logset = logset;
+        if(register[index]!==undefined) register[index].logset = logset;
         let confIndex = config.registers.findIndex(confIndex => confIndex == address);
         if(confIndex===-1) {
             log(config.log.enable,`Adding register ${address}`,config.log['info'],"Register");
@@ -729,8 +729,8 @@ function removeRegister(address) {
   const addRegular = (address) => {
     if(core!==undefined && core.connected!==undefined && core.connected===true) {
     let regIndex = register.findIndex(regIndex => regIndex.register == address);
-    if(register[regIndex]===undefined) return;
-    if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+    if(register[regIndex]===undefined && config.system.testmode!==true) return;
+    if(config.system.testmode!==true && register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
     let index = regQueue.findIndex(index => index == getData(address));
     if(index===-1) {
         if(address.toString().charAt(0)=="1") {
