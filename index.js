@@ -1031,7 +1031,6 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
         config.mqtt.port = port;
         config.mqtt.enable = true;
         result.subscribe(config.mqtt.topic+'#');
-        mqtt_client = result;
         updateSensors();
         if(mqtt_client!==undefined && mqtt_client.connected===true) {
             mqtt_client.on('message', function (topic, message) {
