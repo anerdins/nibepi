@@ -912,6 +912,23 @@ async function decodeS(data) {
             log(config.log.enable,JSON.stringify(register[index]),config.log['debug'],"Data");
             log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['info'],"Data");
         }
+    } else if(config.system.testmode===true) {
+        let output = {
+            register:address,
+            data:data,
+            raw_data:data,
+            factor:1,
+            unit:"",
+            size:"",
+            titel:"Unknown",
+            info:"",
+            mode:"R",
+            min:0,
+            max:0,
+            timestamp:timeNow
+        }
+        nibeEmit.emit('data',output);
+        nibeEmit.emit(address,output);
     }
 }
 const decodeMessage = (buf) => {
