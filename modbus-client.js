@@ -49,7 +49,7 @@ async function requestData(address) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
-                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCES"});
+                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCESS"});
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
@@ -78,7 +78,7 @@ async function requestData(address) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
-                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCES"});
+                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCESS"});
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});

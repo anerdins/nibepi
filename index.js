@@ -699,7 +699,7 @@ const addRegister = (address,logset=false) => {
         let confIndex = config.registers.findIndex(confIndex => confIndex == address);
         if(confIndex===-1) {
             log(config.log.enable,`Adding register ${address}`,config.log['info'],"Register");
-            config.registers.push(register[index].register);
+            config.registers.push(address);
             if(logset===false) {
                 addRegular(address);
             }
