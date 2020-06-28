@@ -934,6 +934,7 @@ async function decodeS(data) {
             max:0,
             timestamp:timeNow
         }
+        log(config.log.enable,JSON.stringify(output),config.log['debug'],"Data");
         nibeEmit.emit('data',output);
         nibeEmit.emit(address,output);
     }
