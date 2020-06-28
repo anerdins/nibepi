@@ -12,7 +12,7 @@ async function writeData(item) {
     let size = 0xFFFF;
     if(item.size=="u8" || item.size=="s8") size = 0xFF;
     if(item.size=="u32" || item.size=="s32") size = 0xFFFFFFFF;
-    
+    process.send({type:"log",data:JSON.stringify(item,null,2),level:"core",kind:"WRITE"});
     client.writeRegisters(register, [item.data,size])
         .then(data => {
             console.log(data);
@@ -25,12 +25,15 @@ async function writeData(item) {
 }
 async function requestData(address) {
     const promise = new Promise((resolve,reject) => {
+        process.send({type:"log",data:"Requesting data from register: "+address,level:"core",kind:"REQ"});
         if(address.toString().charAt(0)=="3") {
             let register = Number(address)-30000;
             // Get input register
             if(client!==undefined) {
                 getTimer[address] = setTimeout((address) => {
+                    process.send({type:"log",data:"5 sec timeout from register: "+address,level:"core",kind:"ERROR"});
                     reject(new Error('No respond from register ('+address+')'));
+                    
                 }, 5000, address);
                 client.readInputRegisters(register, 1, function(err, data) {
                     clearTimeout(getTimer[address]);
@@ -38,6 +41,7 @@ async function requestData(address) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
+                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCES"});
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
@@ -56,6 +60,7 @@ async function requestData(address) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
                         if(process.connected===true) {
+                            process.send({type:"log",data:"Got data from register: "+address+", "+JSON.stringify(data),level:"core",kind:"SUCCES"});
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
