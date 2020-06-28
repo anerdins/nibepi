@@ -420,14 +420,14 @@ async function reqData (address) {
     async function getDataFseries(address) {
         const promise = new Promise((resolve,reject) => {
         let index = register.findIndex(index => index.register == address);
-        if(index!==-1) {
+        if(index!==-1 || (address!==undefined && config.system.testmode===true && address!=="00000")) {
             getTimer[address] = setTimeout((address,index) => {
                 getTimer[address] = setTimeout((address) => {
                     nibeEmit.removeAllListeners(address);
                     reject(new Error('No respond from register ('+address+')'));
                 }, 30000, address);
-                if(register[index]!==undefined) {
-                    register[index].logset = false;
+                if(register[index]!==undefined || config.system.testmode===true) {
+                    if(register[index]!==undefined) register[index].logset = false;
                     var data = [];
                     data[0] = 0xc0;
                     data[1] = 0x69;
@@ -446,7 +446,7 @@ async function reqData (address) {
                 }
                 
             }, 7000, address,index);
-            if(register[index].logset===undefined || register[index].logset===false) {
+            if((register[index]===undefined && config.system.testmode===true) || register[index].logset===undefined || register[index].logset===false) {
                 var data = [];
                 data[0] = 0xc0;
                 data[1] = 0x69;
@@ -927,7 +927,7 @@ async function decodeS(data) {
             factor:1,
             unit:"",
             size:"",
-            titel:"Unknown",
+            titel:"Unknown register "+address,
             info:"",
             mode:"R",
             min:0,
