@@ -107,20 +107,31 @@ process.on('message', (m) => {
         
         setTimeout(async () => {
             process.send({type:"started",data:true});
-            for( var i = 0; i < regQueue.length; i++){
-                if(getQueue!==undefined && getQueue.length!==0) {
-                    var lastMsg = getQueue.pop();
-                    await requestData(lastMsg).catch((err) => {
-                        process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
-                    });
-                    i--;
-                } else {
-                    await requestData(regQueue[i]).catch((err) => {
-                        process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
-                    });;
+            async function startLoop() {
+                var len = regQueue.length;
+                for( var i = 0; i < regQueue.length; i++){
+                    if(getQueue!==undefined && getQueue.length!==0) {
+                        var lastMsg = getQueue.pop();
+                        await requestData(lastMsg).catch((err) => {
+                            process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
+                        });
+                        i--;
+                    } else {
+                        await requestData(regQueue[i]).catch((err) => {
+                            process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
+                        });;
+                    }
+                    
+                    if(len!==regQueue.length) {
+                        process.send({type:"log",data:'Starting over the regQueue again, register added',level:"core",kind:"LOOP"});
+                        i = regQueue.length;
+                        startLoop();
+                    } else {
+                        if(i===regQueue.length-1) i=0;
+                    }
                 }
-                if(i===regQueue.length-1) i=-1;
             }
+            startLoop();
         }, 2000);
         
     } else if(m.type=="reqData") {

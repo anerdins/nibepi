@@ -746,7 +746,7 @@ function removeRegister(address) {
             // Req data change
             reqData(address);
             regQueue.push(getData(address));
-            log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
+            log(config.log.enable,`Regular register added (${getData(address)})`,config.log['info'],"Register");
             core.send({type:"regRegister",data:regQueue});
         }
         
