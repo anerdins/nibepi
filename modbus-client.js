@@ -5,6 +5,7 @@ const getQueue = [];
 var regQueue = [30001];
 var red = false;
 var getTimer = {};
+var setTimer = {};
 async function writeData(item) {
     let address = item.register;
     const promise = new Promise((resolve,reject) => {
@@ -13,12 +14,19 @@ async function writeData(item) {
     if(item.size=="u8" || item.size=="s8") size = 0xFF;
     if(item.size=="u32" || item.size=="s32") size = 0xFFFFFFFF;
     process.send({type:"log",data:JSON.stringify(item,null,2),level:"core",kind:"WRITE"});
+    setTimer[address] = setTimeout((address) => {
+        process.send({type:"log",data:"5 sec timeout from register: "+address,level:"core",kind:"ERROR"});
+        reject(new Error('No respond when writing to register ('+address+')'));
+        
+    }, 5000, address);
     client.writeRegisters(register, [item.data,size])
         .then(data => {
+            clearTimeout(setTimer[address]);
             console.log(data);
             resolve(data)
         });
     }).catch((err => {
+        clearTimeout(getTimer[address]);
         reject(err)
     }));
     return promise;
@@ -45,17 +53,27 @@ async function requestData(address) {
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
+                        } else {
+                            reject(new Error("Core has been disconnected"))
                         }
                     } else {
                         reject(new Error("Could not read data from register"))
                     }
                 });
+            } else {
+                reject(new Error("Heatpump not connected yet"))
             }
         } else if(address.toString().charAt(0)=="4") {
             // Get holding register
             let register = Number(address)-40000;
             if(client!==undefined) {
+                getTimer[address] = setTimeout((address) => {
+                    process.send({type:"log",data:"5 sec timeout from register: "+address,level:"core",kind:"ERROR"});
+                    reject(new Error('No respond from register ('+address+')'));
+                    
+                }, 5000, address);
                 client.readHoldingRegisters(register, 1, function(err, data) {
+                    clearTimeout(getTimer[address]);
                     if(err) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
@@ -64,12 +82,18 @@ async function requestData(address) {
                             process.send({type:"data",data:{register:address,data:data.data}});
                             resolve(data.data)
                             //process.send({type:"log",data:data.data,level:"debug",kind:"OK"});
+                        } else {
+                            reject(new Error("Core has been disconnected"))
                         }
                     } else {
                         reject(new Error("Could not read data from register"))
                     }
                 });
+            } else {
+                reject(new Error("Heatpump not connected yet"))
             }
+        } else {
+            reject(new Error("Can't request register which is not in the 30000-49999 range"))
         }
         });
         return promise;
