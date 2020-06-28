@@ -111,12 +111,12 @@ process.on('message', (m) => {
                 if(getQueue!==undefined && getQueue.length!==0) {
                     var lastMsg = getQueue.pop();
                     await requestData(lastMsg).catch((err) => {
-                        process.send({type:"log",data:err,level:"core",kind:"ERROR"});
+                        process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
                     });
                     i--;
                 } else {
                     await requestData(regQueue[i]).catch((err) => {
-                        process.send({type:"log",data:err,level:"core",kind:"ERROR"});
+                        process.send({type:"log",data:JSON.stringify(err),level:"core",kind:"ERROR"});
                     });;
                 }
                 if(i===regQueue.length-1) i=-1;
