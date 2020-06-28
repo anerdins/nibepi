@@ -4,6 +4,7 @@ var client = new ModbusRTU();
 const getQueue = [];
 var regQueue = [30001];
 var red = false;
+var getTimer = {};
 async function writeData(item) {
     let address = item.register;
     const promise = new Promise((resolve,reject) => {
@@ -28,7 +29,11 @@ async function requestData(address) {
             let register = Number(address)-30000;
             // Get input register
             if(client!==undefined) {
+                getTimer[address] = setTimeout((address) => {
+                    reject(new Error('No respond from register ('+address+')'));
+                }, 5000, address);
                 client.readInputRegisters(register, 1, function(err, data) {
+                    clearTimeout(getTimer[address]);
                     if(err) {
                         reject(new Error("Could not read data from register"))
                     } else if(data!==undefined) {
