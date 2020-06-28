@@ -730,7 +730,7 @@ function removeRegister(address) {
     if(core!==undefined && core.connected!==undefined && core.connected===true) {
     let regIndex = register.findIndex(regIndex => regIndex.register == address);
     if(register[regIndex]===undefined && config.system.testmode!==true) return;
-    if(config.system.testmode!==true && register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+    if((config.system.testmode!==true && register[regIndex]===-1) || (register[regIndex]!==undefined && register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
     let index = regQueue.findIndex(index => index == getData(address));
     if(index===-1) {
         if(address.toString().charAt(0)=="1") {
