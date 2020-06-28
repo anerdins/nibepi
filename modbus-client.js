@@ -127,7 +127,8 @@ process.on('message', (m) => {
                         i = regQueue.length;
                         startLoop();
                     } else {
-                        if(i===regQueue.length-1) i=0;
+                        if(i===regQueue.length-1) i=-1;
+                        process.send({type:"log",data:JSON.stringify(regQueue,null,2),level:"core",kind:"LOOP"});
                     }
                 }
             }
