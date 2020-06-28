@@ -564,7 +564,7 @@ const setData = (address,value,cb=()=>{}) => {
     }
 }
 function getData(address) {
-    var item = register.findIndex(item => item.register == address);
+    var item = register.find(item => item.register == address);
     if(item!==undefined && config.system.testmode!==true) {
         if(config.connection.enable!==undefined && config.connection.enable=="serial") {
             var data = [];
