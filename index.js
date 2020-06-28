@@ -728,9 +728,16 @@ function removeRegister(address) {
   }
   const addRegular = (address) => {
     if(core!==undefined && core.connected!==undefined && core.connected===true) {
+        log(config.log.enable,`Adding regular register (${address})`,config.log['debug'],"Register");
     let regIndex = register.findIndex(regIndex => regIndex.register == address);
-    if(register[regIndex]===undefined && config.system.testmode!==true) return;
-    if((config.system.testmode!==true && register[regIndex]===-1) || (register[regIndex]!==undefined && register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
+    if(register[regIndex]===undefined && config.system.testmode!==true) {
+        log(config.log.enable,`Regular register (${address}) not in database`,config.log['debug'],"Register");
+        return;
+    };
+    if((config.system.testmode!==true && register[regIndex]===-1) || (register[regIndex]!==undefined && register[regIndex].logset!==undefined && register[regIndex].logset===true)) {
+        log(config.log.enable,`Regular register (${address}) not in database or logset register`,config.log['debug'],"Register");
+        return;
+    }
     let index = regQueue.findIndex(index => index == getData(address));
     if(index===-1) {
         if(address.toString().charAt(0)=="1") {
