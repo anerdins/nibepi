@@ -110,10 +110,14 @@ process.on('message', (m) => {
             for( var i = 0; i < regQueue.length; i++){
                 if(getQueue!==undefined && getQueue.length!==0) {
                     var lastMsg = getQueue.pop();
-                    await requestData(lastMsg);
+                    await requestData(lastMsg).catch((err) => {
+                        process.send({type:"log",data:err,level:"core",kind:"ERROR"});
+                    });
                     i--;
                 } else {
-                    await requestData(regQueue[i]);
+                    await requestData(regQueue[i]).catch((err) => {
+                        process.send({type:"log",data:err,level:"core",kind:"ERROR"});
+                    });;
                 }
                 if(i===regQueue.length-1) i=-1;
             }
