@@ -710,7 +710,7 @@ const addRegister = (address,logset=false) => {
 function removeRegister(address) {
     if(register!==[] && register.length>1)  {
     let index = register.findIndex(index => index.register == address);
-    if(index===-1 || (config.system.testmode===true && address!=="00000")) {
+    if(index===-1 && config.system.testmode!==true) {
         return;
     };
     if(config.registers===undefined) {
