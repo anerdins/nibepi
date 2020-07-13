@@ -25,6 +25,7 @@ const path = "/etc/nibepi"
 const Core = require('./lib/startCore')
 const startCore = Core.startCoreF;
 const startCoreS = Core.startCoreS;
+const startNibeGW = Core.startNibeGW;
 const stopCore = require('./lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
@@ -227,36 +228,69 @@ if(config.system.readonly===true) {
 }
 if(config.connection!==undefined && config.connection.series!==undefined) {
     if(config.connection.series=="fSeries") {
-        startCore(port).then(result => {
-            core = result;
-            
-            core.on('message', (m) => {
-                if(m.type=="data") {
-                    let n = m.data;
-                    announcment(m, (err,ready) => {
-                        if(err) console.log(err);
-                        if(ready===true) {
-                            config.serial.port = port;
-                            cb(null,result);
-                        } else {
-    
+        if(config.connection.enable=="serial") {
+            startCore(port).then(result => {
+                core = result;
+                
+                core.on('message', (m) => {
+                    if(m.type=="data") {
+                        let n = m.data;
+                        announcment(m, (err,ready) => {
+                            if(err) console.log(err);
+                            if(ready===true) {
+                                config.serial.port = port;
+                                cb(null,result);
+                            } else {
+        
+                            }
+                        });
+                        decodeRMU(n);
+                        decodeMessage(n);
+                    } else if(m.type=="fault") {
+                        nibeEmit.emit('fault',m.data);
+                    } else if(m.type=="ack") {
+                        nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                    } else if(m.type=="log") {
+                        if(config.log===undefined) {
+                            config.log = {};
+                            updateConfig(config);
                         }
-                    });
-                    decodeRMU(n);
-                    decodeMessage(n);
-                } else if(m.type=="fault") {
-                    nibeEmit.emit('fault',m.data);
-                } else if(m.type=="ack") {
-                    nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
-                } else if(m.type=="log") {
-                    if(config.log===undefined) {
-                        config.log = {};
-                        updateConfig(config);
+                        log(config.log.enable,m.data,config.log[m.level],m.kind);
                     }
-                    log(config.log.enable,m.data,config.log[m.level],m.kind);
-                }
-              });
-        });
+                  });
+            });
+        } else if(config.connection.enable=="nibegw") {
+            startNibeGW(port).then(result => {
+                core = result;
+                
+                core.on('message', (m) => {
+                    if(m.type=="data") {
+                        let n = m.data;
+                        announcment(m, (err,ready) => {
+                            if(err) console.log(err);
+                            if(ready===true) {
+                                config.serial.port = port;
+                                cb(null,result);
+                            } else {
+        
+                            }
+                        });
+                        decodeMessage(n);
+                    } else if(m.type=="fault") {
+                        nibeEmit.emit('fault',m.data);
+                    } else if(m.type=="ack") {
+                        nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                    } else if(m.type=="log") {
+                        if(config.log===undefined) {
+                            config.log = {};
+                            updateConfig(config);
+                        }
+                        log(config.log.enable,m.data,config.log[m.level],m.kind);
+                    }
+                  });
+            });
+        }
+        
     } else if(config.connection.series=="sSeries") {
                     startCoreS(host,port).then(result => {
                         core = result;
@@ -566,7 +600,7 @@ const setData = (address,value,cb=()=>{}) => {
 function getData(address) {
     var item = register.find(item => item.register == address);
     if(item!==undefined || config.system.testmode===true) {
-        if(config.connection.enable!==undefined && config.connection.enable=="serial") {
+        if(config.connection.enable!==undefined && (config.connection.enable=="serial" || config.connection.enable=="nibegw")) {
             var data = [];
             data[0] = 0xc0;
             data[1] = 0x69;
@@ -609,7 +643,7 @@ function setDataValue(incoming) {
                     }
                 }
             }
-            if(config.connection.enable!==undefined && config.connection.enable=="serial") {
+            if(config.connection.enable!==undefined && (config.connection.enable=="serial" || config.connection.enable=="nibegw")) {
                 if(item.register.charAt(0)=="1") {
                     let len = 0x03;
                     if(item.size=="s8" || item.size=="u8") {
@@ -950,7 +984,6 @@ const decodeMessage = (buf) => {
         var address = (buf[i + 1] * 256 + buf[i]);
         var index = register.findIndex(index => index.register == address);
         if (index!==-1) {
-
             if (buf[3]===104 || buf[3]===98 || buf[3]===96) {
                 addRegister(address,true)
             } else {
@@ -1074,7 +1107,7 @@ const decodeMessage = (buf) => {
         }
     }
     
-    if(regQueue.length===0 && buf[4]===80) {
+    if(regQueue.length===0 && buf[3]===104) {
         for (var i = 0; i < config.registers.length; i++) {
             addRegular(config.registers[i]);
         }
