@@ -3,7 +3,7 @@ let config = nibe.getConfig();
 process.on('exit', function(code) {
     console.log('About to exit with code:', code);
     if(code===-1) {
-        console.log('No serial port specified in config file')
+        console.log('No serialport/host specified in config file')
     } else if(code===-2) {
         console.log('F series is only supported')
     } else if(code===-3) {
@@ -27,7 +27,7 @@ if(config.connection!==undefined) {
             process.exit(-1);
         }
     } else if(config.connection.enable=="nibegw") {
-        if(config.tcp!==undefined && config.tcp.port!==undefined && config.tcp.port!=="" && config.tcp.host!==undefined && config.tcp.host!=="") {
+        if(config.serial!==undefined && config.serial.port!==undefined && config.serial.port!=="") {
             if(config.connection.series!==undefined && config.connection.series!=="" && config.connection.series==="fSeries") {
                 nibe.initiateCore(null,config.serial.port, function(err,core) {
                     if(err) return process.exit(-3);
