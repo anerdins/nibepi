@@ -1238,7 +1238,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
     if(on===undefined || on=="" || on=="false" || on===false) {
         if(mqtt_client!==undefined && mqtt_client.connected===true) {
             mqtt_client.end();
-            console.log('Terminated MQTT session');
+            console.log('Terminated MQTT session, shutdown');
             return cb(null,false)
         } else {
             return cb(null,false)
