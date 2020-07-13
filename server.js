@@ -1,4 +1,4 @@
-var nibe = require('./nibepi');
+var nibe = require('./index.js');
 let config = nibe.getConfig();
 process.on('exit', function(code) {
     console.log('About to exit with code:', code);
