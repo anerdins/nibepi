@@ -22,11 +22,11 @@ SOFTWARE.
 */
 //const path = __dirname;
 const path = "/etc/nibepi"
-const Core = require('./lib/startCore')
+const Core = require(__dirname+'/lib/startCore')
 const startCore = Core.startCoreF;
 const startCoreS = Core.startCoreS;
 const startNibeGW = Core.startNibeGW;
-const stopCore = require('./lib/stopCore');
+const stopCore = require(__dirname+'/lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
 let exec = child.exec;
@@ -41,7 +41,7 @@ let mqttData = {};
 let mqttDiscoverySensors = [];
 let red = false;
 const regQueue = [];
-var pumpModel = require('./lib/models.json')
+var pumpModel = require(__dirname+'/lib/models.json')
 const EventEmitter = require('events').EventEmitter
 const nibeEmit = new EventEmitter();
 const fs = require('fs');
