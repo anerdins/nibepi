@@ -261,7 +261,7 @@ const announcment = (msg,cb) => {
         let modelLength = data[4]+5;
         model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
         firmware = (data[6]*256)+data[7];
-        if(model[0]=="VVM") {
+        if(model[0]=="VVM" || model[0]=="SMO") {
             model[0] = model[0]+model[1];
         }
         model = model[0].split("-");
