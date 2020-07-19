@@ -1,0 +1,30 @@
+[
+    {"register":"10001","factor":1,"size":"u8","mode":"R","titel":"A-larm","info":"Indicates the alarm number of the most severe current red alarm","unit":"","min":"0","max":"0","map":[
+        {"0":"Inga larm"},
+        {"64":"Låg frånluftstemperatur"},
+        {"83":"Misslyckad avfrostning"},
+        {"99":"RMU System 4 Kom.avb"},
+        {"164":"Låg frånluftstemperatur"},
+        {"180":"Frysskydd"},
+        {"181":"Misslyckad periodisk höjning"},
+        {"182":"Effektvakt aktiverad"},
+        {"183":"Avfrostning"},
+        {"184":"Filterlarm"},
+        {"251":"Kom.avb Modbus"}
+    ]},
+    {"register":"10011","factor":1,"size":"u8","mode":"R","titel":"Fan Time (h)","info":"Remaining time on forced vent.","unit":"","min":"0","max":"0"},
+    {"register":"10012","factor":1,"size":"u8","mode":"R","titel":"Fan Time (m)","info":"Remaining time on forced vent.","unit":"","min":"0","max":"0"},
+    {"register":"10220","factor":1,"size":"u8","mode":"R/W","titel":"Temporary Lux","info":"0=Off, 1=3h, 2=6h, 3=12h, 4=One time increase","unit":"","min":"0","max":"4","map":[
+        {"0":"Från"},
+        {"1":"3h"},
+        {"2":"6h"},
+        {"3":"12h"},
+        {"4":"Engångshöjning"}
+    ]},
+    {"register":"10021","factor":1,"size":"u8","mode":"R","titel":"HW Time (h)","info":"Remaining time on forced HW.","unit":"","min":"0","max":"0"},
+    {"register":"10022","factor":1,"size":"u8","mode":"R","titel":"HW Time (m)","info":"Remaining time on forced HW.","unit":"","min":"0","max":"0"},
+    {"register":"10260","factor":10,"size":"s16","mode":"R/W","titel":"RMU Temp S3","info":"","unit":"°C","min":"0","max":"0"},
+    {"register":"40004","factor":10,"size":"s16","mode":"R","titel":"BT1 Outdoor Temperature","info":"Current outdoor temperature","unit":"°C","min":"-500","max":"500"},
+    {"register":"40013","factor":10,"size":"s16","mode":"R","titel":"BT7 HW Top","info":"Hot water top temperature, BT7","unit":"°C","min":"0","max":"800"},
+    {"register":"40031","factor":10,"size":"s16","mode":"R","titel":"EP22-BT50 Room Temp S3","info":"","unit":"°C","min":"0","max":"0"}
+]
