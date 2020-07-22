@@ -13,7 +13,7 @@ process.on('message', (m) => {
     if(m.start===true) {
         if(m.port!==undefined) {
             HOST = m.port;
-            start(HOST)
+            start()
         } else {
             if(process.connected===true) {
                 process.send({type:"log",data:'Error starting backend, no serial port specified',level:"error",kind:"Serialport"});
@@ -63,9 +63,8 @@ function read(data) {
       client.close();
     });
     }
-    server.bind(PORT, HOST);
-function start(host="127.0.0.1") {
-    
+function start() {
+    server.bind(PORT, HOST);    
     server.on('listening', function() {
         var address = server.address();
        console.log('UDP Server listening on ' + address.address + ':' + address.port);
