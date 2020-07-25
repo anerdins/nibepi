@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 //const path = __dirname;
-const path = "/etc/nibepi"
 const Core = require(__dirname+'/lib/startCore')
 const startCore = Core.startCoreF;
 const startCoreS = Core.startCoreS;
@@ -29,6 +28,7 @@ const startNibeGW = Core.startNibeGW;
 const stopCore = require(__dirname+'/lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
+var docker = false;
 let exec = child.exec;
 let spawn = child.spawn;
 let model = "";
@@ -40,23 +40,36 @@ let mqtt_subcribers = [];
 let mqttData = {};
 let mqttDiscoverySensors = [];
 let red = false;
+let config;
 const regQueue = [];
 var pumpModel = require(__dirname+'/lib/models.json')
 const EventEmitter = require('events').EventEmitter
 const nibeEmit = new EventEmitter();
 const fs = require('fs');
-if (!fs.existsSync("/etc/nibepi")) {
-    exec(`sudo mount -o remount,rw / && sudo mkdir /etc/nibepi && sudo chown ${process.env.USER}:${process.env.USER} /etc/nibepi`, function(error, stdout, stderr) {
-        console.log('Configuration directory created /etc/nibepi');
+const path = "/etc/nibepi"
+if (!fs.existsSync(path)) {
+    exec(`sudo mount -o remount,rw / && sudo mkdir ${path} && sudo chown ${process.env.USER}:${process.env.USER} ${path}`, function(error, stdout, stderr) {
+        if(error) {
+            exec(`mkdir ${path} && chown ${process.env.USER}:${process.env.USER} ${path}`, function(error, stdout, stderr) {
+                if(error) {console.log('Error creating config directory')} else { console.log('Created config directory')}
+            });
+        } else {
+            console.log(`Configuration directory created ${path}`);
+        }
     });
 }
+
 function requireF(modulePath){ // force require
     try {
      return require(modulePath);
     }
     catch (e) {
-     console.log('Config file not found, loading default.');
-     return require(__dirname+'/default.json');
+        console.log('Config file not found, loading default.');
+        let conf = require(__dirname+'/default.json')
+        fs.writeFile(path+'/config.json', JSON.stringify(conf,null,2), function(err) {
+            if(err) console.log(err)
+        });
+        return conf;
     }
 }
 function requireGraph(){ // force require
@@ -70,7 +83,7 @@ function requireGraph(){ // force require
 });
 return promise;
 }
-let config = requireF(path+'/config.json');
+config = requireF(path+'/config.json');
 var timer;
 const saveGraph = (data) => {
     const promise = new Promise((resolve,reject) => {
@@ -78,7 +91,7 @@ const saveGraph = (data) => {
     if(data===undefined) reject(new Error('Cant save empty graph'));
         
     if(config.system===undefined) config.system = {};
-            if(config.log===undefined) config.log = {};
+    if(config.log===undefined) config.log = {};
             if(config.system.readonly===true) {
                 exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
                     if(error) {
@@ -121,21 +134,17 @@ const saveGraph = (data) => {
         });
         return promise;
 }
+let startingMQTT = false;
 const updateConfig = (data) => {
     config = data;
-
-    handleMQTT(config.mqtt.enable,config.mqtt.host,config.mqtt.port,config.mqtt.user,config.mqtt.pass, (err,result) => {
-        if(err) return console.log(err);
-        if(result===true) {
-            if(mqtt_client!==undefined && mqtt_client.connected!==undefined && mqtt_client.connected===false) {
-
-            }
-        } else {
-            if(mqtt_client!==undefined && mqtt_client.connected!==undefined && mqtt_client.connected===true) {
+        handleMQTT(config.mqtt.enable,config.mqtt.host,config.mqtt.port,config.mqtt.user,config.mqtt.pass, (err,result) => {
+            if(err) {
+                return console.log(err);
+            } else {
 
             }
-        }
-    })
+        })
+    
     nibeEmit.emit('config',config);
    
     let run = false;
@@ -150,7 +159,7 @@ const updateConfig = (data) => {
             if(JSON.stringify(data).length>2) {
                 if(config.system===undefined) config.system = {};
                 if(config.log===undefined) config.log = {};
-                if(config.system.readonly===true) {
+                if(config.system.readonly===true && docker===false) {
                     exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
                         if(error) {
                             log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
@@ -177,19 +186,35 @@ const updateConfig = (data) => {
                         }
                     });
                 } else {
-                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-                        if(error) {
-                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
-                            return(false);
-                        } else {
-                            fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
-                                if(err) return (false);
-                                nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
-                                log(config.log.enable,"Config file saved",config.log['info'],"Config");
-                                return (true)
-                            }); 
-                        }
-                    });
+                    if(docker===false) {
+                        exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                            if(error) {
+                                log(config.log.enable,error,config.log['error'],"Config");
+                                return(false);
+                            } else {
+                                fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
+                                    if(err) {
+                                        log(config.log.enable,err,config.log['error'],"Config");
+                                        return (false);
+                                    }
+                                    nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
+                                    log(config.log.enable,"Config file saved",config.log['info'],"Config");
+                                    return (true)
+                                }); 
+                            }
+                        });
+                    } else if(docker===true) {
+                        fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
+                            if(err) {
+                                log(config.log.enable,err,config.log['error'],"Config");
+                                return (false);
+                            }
+                            nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
+                            log(config.log.enable,"Config file saved",config.log['info'],"Config");
+                            return (true)
+                        }); 
+                    }
+                    
                     
                 }
                 
@@ -206,26 +231,29 @@ const resetCore = () => {
 }
 const initiateCore = (host,port,cb) => {
     if(config.log===undefined) config.log = {};
-if(config.system.readonly===true) {
-    exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
-        if(error) {
-            log(config.log.enable,"Could not set read-only mode at startup.",config.log['error'],"Startup");
-            return(false);
+    if(docker===false) {
+        if(config.system.readonly===true) {
+            exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
+                if(error) {
+                    log(config.log.enable,"Could not set read-only mode at startup.",config.log['error'],"Startup");
+                    return(false);
+                } else {
+                    console.log('Read only mode set.')
+                    return (true)
+                }
+            })
         } else {
-            console.log('Read only mode set.')
-            return (true)
+            exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                if(error) {
+                    log(config.log.enable,"Could not set write mode at startup.",config.log['error'],"Startup");
+                    return(false);
+                } else {
+                    return (true)
+                }
+            })
         }
-    })
-} else {
-    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-        if(error) {
-            log(config.log.enable,"Could not set write mode at startup.",config.log['error'],"Startup");
-            return(false);
-        } else {
-            return (true)
-        }
-    })
-}
+    }
+
 if(config.connection!==undefined && config.connection.series!==undefined) {
     if(config.connection.series=="fSeries") {
         if(config.connection.enable=="serial") {
@@ -1117,6 +1145,7 @@ const getConfig = () => {
     //nibeEmit.emit('config',config);
     return config;
 }
+
 const getRegister = () => {
     return register;
 }
@@ -1248,12 +1277,16 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
     if(host===undefined || host=="") return cb(err = new Error('No MQTT host defined'));
     if(port===undefined || port=="") return cb(err = new Error('No MQTT port defined'));
     if(mqtt_client===undefined || mqtt_client.connected!==true) {
+        if(startingMQTT===false) {
+            startingMQTT = true;
     startMQTT(host,port,user,pass).then(result => {
+        startingMQTT = false
+        //mqtt_client = result;
         config.mqtt.host = host;
         config.mqtt.port = port;
         config.mqtt.enable = true;
         result.subscribe(config.mqtt.topic+'#');
-        mqtt_client = result;
+        
         updateSensors();
         if(mqtt_client!==undefined && mqtt_client.connected===true) {
             mqtt_client.on('message', function (topic, message) {
@@ -1298,6 +1331,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
         console.log('Terminated MQTT session');
         return cb(null,false)
     }));
+}
 } else {
     return cb(null,true)
 }
@@ -1396,6 +1430,9 @@ const writeLog = (data,plugin,level) => {
     
     return;
 }
+const setDocker = (cmd) => {
+    docker = cmd;
+}
 module.exports = {
     reqData:reqData,
     setData:setData,
@@ -1415,5 +1452,6 @@ module.exports = {
     getMQTTData:getMQTTData,
     log:writeLog,
     saveGraph:saveGraph,
-    requireGraph:requireGraph
+    requireGraph:requireGraph,
+    setDocker:setDocker
 }

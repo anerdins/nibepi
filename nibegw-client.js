@@ -1,4 +1,4 @@
-var dgram = require('dgram');
+const dgram = require('dgram');
 var server = dgram.createSocket('udp4');
 
 var HOST = "127.0.0.1";
@@ -17,7 +17,8 @@ process.on('message', (m) => {
         } else {
             if(process.connected===true) {
                 process.send({type:"log",data:'Error starting backend, no serial port specified',level:"error",kind:"Serialport"});
-            }
+	        console.log('Error in the core');
+}
         }
     } else if(m.type=="reqData") {
         if(m.data!==undefined) {
@@ -64,10 +65,10 @@ function read(data) {
     });
     }
 function start() {
-    server.bind(PORT, HOST);    
+    server.bind(PORT, "0.0.0.0");
     server.on('listening', function() {
         var address = server.address();
-       console.log('UDP Server listening on ' + address.address + ':' + address.port);
+       console.log('NibeGW client is listening on ' + HOST + ':' + address.port);
       });      
     server.on('message', function(message, remote) {
         makeResponse(Buffer.from(message)).then(result => {
