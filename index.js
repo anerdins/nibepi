@@ -28,6 +28,9 @@ const startNibeGW = Core.startNibeGW;
 const stopCore = require(__dirname+'/lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
+const os = require('os').networkInterfaces();
+const crypto = require('crypto')
+const http = require('http');
 var docker = false;
 let exec = child.exec;
 let spawn = child.spawn;
@@ -369,7 +372,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                           });
                     });
     }
-    
+    updateID();
 }
     
 }
@@ -1425,6 +1428,40 @@ const writeLog = (data,plugin,level) => {
 }
 const setDocker = (cmd) => {
     docker = cmd;
+}
+const updateID = () => {
+    if(os['wlan0']!==undefined) {
+        sendID('wlan0')
+    } else if(os['eth0']!==undefined) {
+        sendID('eth0')
+    }
+}
+function sendID(dev) {
+    let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
+    let hash = crypto.createHash('md5').update(mac).digest("hex")
+    hash = hash.substr(hash.length - 10)
+    const postData = JSON.stringify({
+        id:hash
+    });
+    const options = {
+        hostname: '93.115.23.166',
+        port: 18081,
+        path: '/',
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+    
+    const req = http.request(options, (res) => {
+
+    });
+    
+    
+    // Write data to request body
+req.write(postData);
+req.end();
 }
 module.exports = {
     reqData:reqData,
