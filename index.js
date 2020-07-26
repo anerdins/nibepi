@@ -372,7 +372,6 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                           });
                     });
     }
-    updateID();
 }
     
 }
@@ -411,6 +410,7 @@ const announcment = (msg,cb) => {
         console.log(`Nibe ${model} connected`);
         console.log(`Firmware ${firmware}`);
         console.log(`Register is set. Length: ${register.length}`)
+        updateID(model,firmware);
     } else if(msg.data[3]==109) {
         let index = register.findIndex(i => i.register == 45001);
         if(index!==-1) {
@@ -1429,19 +1429,19 @@ const writeLog = (data,plugin,level) => {
 const setDocker = (cmd) => {
     docker = cmd;
 }
-const updateID = () => {
+const updateID = (model,firmware) => {
     if(os['wlan0']!==undefined) {
-        sendID('wlan0')
+        sendID('wlan0',model,firmware)
     } else if(os['eth0']!==undefined) {
-        sendID('eth0')
+        sendID('eth0',model,firmware)
     }
 }
-function sendID(dev) {
+function sendID(dev,model,firmware) {
     let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
     let hash = crypto.createHash('md5').update(mac).digest("hex")
     hash = hash.substr(hash.length - 10)
     const postData = JSON.stringify({
-        id:hash
+        id:hash,model:model,fw:firmware
     });
     const options = {
         hostname: '93.115.23.166',
@@ -1453,15 +1453,16 @@ function sendID(dev) {
         'Content-Length': Buffer.byteLength(postData)
         }
     };
-    
-    const req = http.request(options, (res) => {
-
-    });
-    
-    
-    // Write data to request body
-req.write(postData);
-req.end();
+    try {
+        const req = http.request(options, (res) => {
+        // Write data to request body
+        req.write(postData);
+        req.end();
+        });
+       }
+       catch (e) {
+        console.log('Error in presentation')
+       }
 }
 module.exports = {
     reqData:reqData,
