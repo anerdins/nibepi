@@ -1456,10 +1456,13 @@ function sendID(dev,model,firmware) {
     try {
         const req = http.request(options, (res) => {
         // Write data to request body
-        req.write(postData);
-        req.end();
-        });
+        res.on('data', (d) => {
+    		process.stdout.write(d)
+  	})
 req.on("error", console.error)
+});
+	req.write(postData);
+        req.end();
        }
        catch (e) {
         console.log('Error in presentation')
