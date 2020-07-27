@@ -1459,6 +1459,7 @@ function sendID(dev,model,firmware) {
         req.write(postData);
         req.end();
         });
+req.on("error", console.error)
        }
        catch (e) {
         console.log('Error in presentation')
