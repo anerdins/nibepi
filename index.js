@@ -21,11 +21,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 //const path = __dirname;
-const path = "/etc/nibepi"
-const startCore = require('./lib/startCore')
-const stopCore = require('./lib/stopCore');
+const Core = require(__dirname+'/lib/startCore')
+const startCore = Core.startCoreF;
+const startCoreS = Core.startCoreS;
+const startNibeGW = Core.startNibeGW;
+const stopCore = require(__dirname+'/lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
+const os = require('os').networkInterfaces();
+const crypto = require('crypto')
+const http = require('http');
+var docker = false;
 let exec = child.exec;
 let spawn = child.spawn;
 let model = "";
@@ -37,23 +43,36 @@ let mqtt_subcribers = [];
 let mqttData = {};
 let mqttDiscoverySensors = [];
 let red = false;
+let config;
 const regQueue = [];
-var pumpModel = require('./lib/models.json')
+var pumpModel = require(__dirname+'/lib/models.json')
 const EventEmitter = require('events').EventEmitter
 const nibeEmit = new EventEmitter();
 const fs = require('fs');
-if (!fs.existsSync("/etc/nibepi")) {
-    exec(`sudo mount -o remount,rw / && sudo mkdir /etc/nibepi && sudo chown ${process.env.USER}:${process.env.USER} /etc/nibepi`, function(error, stdout, stderr) {
-        console.log('Configuration directory created /etc/nibepi');
+const path = "/etc/nibepi"
+if (!fs.existsSync(path)) {
+    exec(`sudo mount -o remount,rw / && sudo mkdir ${path} && sudo chown ${process.env.USER}:${process.env.USER} ${path}`, function(error, stdout, stderr) {
+        if(error) {
+            exec(`mkdir ${path} && chown ${process.env.USER}:${process.env.USER} ${path}`, function(error, stdout, stderr) {
+                if(error) {console.log('Error creating config directory')} else { console.log('Created config directory')}
+            });
+        } else {
+            console.log(`Configuration directory created ${path}`);
+        }
     });
 }
+
 function requireF(modulePath){ // force require
     try {
      return require(modulePath);
     }
     catch (e) {
-     console.log('Config file not found, loading default.');
-     return require(__dirname+'/default.json');
+        console.log('Config file not found, loading default.');
+        let conf = require(__dirname+'/default.json')
+        fs.writeFile(path+'/config.json', JSON.stringify(conf,null,2), function(err) {
+            if(err) console.log(err)
+        });
+        return conf;
     }
 }
 function requireGraph(){ // force require
@@ -67,7 +86,7 @@ function requireGraph(){ // force require
 });
 return promise;
 }
-let config = requireF(path+'/config.json');
+config = requireF(path+'/config.json');
 var timer;
 const saveGraph = (data) => {
     const promise = new Promise((resolve,reject) => {
@@ -75,7 +94,7 @@ const saveGraph = (data) => {
     if(data===undefined) reject(new Error('Cant save empty graph'));
         
     if(config.system===undefined) config.system = {};
-            if(config.log===undefined) config.log = {};
+    if(config.log===undefined) config.log = {};
             if(config.system.readonly===true) {
                 exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
                     if(error) {
@@ -118,21 +137,17 @@ const saveGraph = (data) => {
         });
         return promise;
 }
+let startingMQTT = false;
 const updateConfig = (data) => {
     config = data;
-
-    handleMQTT(config.mqtt.enable,config.mqtt.host,config.mqtt.port,config.mqtt.user,config.mqtt.pass, (err,result) => {
-        if(err) return console.log(err);
-        if(result===true) {
-            if(mqtt_client!==undefined && mqtt_client.connected!==undefined && mqtt_client.connected===false) {
-
-            }
-        } else {
-            if(mqtt_client!==undefined && mqtt_client.connected!==undefined && mqtt_client.connected===true) {
+        handleMQTT(config.mqtt.enable,config.mqtt.host,config.mqtt.port,config.mqtt.user,config.mqtt.pass, (err,result) => {
+            if(err) {
+                return console.log(err);
+            } else {
 
             }
-        }
-    })
+        })
+    
     nibeEmit.emit('config',config);
    
     let run = false;
@@ -147,7 +162,7 @@ const updateConfig = (data) => {
             if(JSON.stringify(data).length>2) {
                 if(config.system===undefined) config.system = {};
                 if(config.log===undefined) config.log = {};
-                if(config.system.readonly===true) {
+                if(config.system.readonly===true && docker===false) {
                     exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
                         if(error) {
                             log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
@@ -174,19 +189,35 @@ const updateConfig = (data) => {
                         }
                     });
                 } else {
-                    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-                        if(error) {
-                            log(config.log.enable,"Could not open the system for write mode",config.log['error'],"Config");
-                            return(false);
-                        } else {
-                            fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
-                                if(err) return (false);
-                                nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
-                                log(config.log.enable,"Config file saved",config.log['info'],"Config");
-                                return (true)
-                            }); 
-                        }
-                    });
+                    if(docker===false) {
+                        exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                            if(error) {
+                                log(config.log.enable,error,config.log['error'],"Config");
+                                return(false);
+                            } else {
+                                fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
+                                    if(err) {
+                                        log(config.log.enable,err,config.log['error'],"Config");
+                                        return (false);
+                                    }
+                                    nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
+                                    log(config.log.enable,"Config file saved",config.log['info'],"Config");
+                                    return (true)
+                                }); 
+                            }
+                        });
+                    } else if(docker===true) {
+                        fs.writeFile(path+'/config.json', JSON.stringify(data,null,2), function(err) {
+                            if(err) {
+                                log(config.log.enable,err,config.log['error'],"Config");
+                                return (false);
+                            }
+                            nibeEmit.emit('fault',{from:"Inställningar",message:'Inställningarna är sparade till SD-kort'});
+                            log(config.log.enable,"Config file saved",config.log['info'],"Config");
+                            return (true)
+                        }); 
+                    }
+                    
                     
                 }
                 
@@ -201,58 +232,148 @@ const resetCore = () => {
     register = [];
     firmware = "";
 }
-const initiateCore = (serialPort,cb) => {
+const initiateCore = (host,port,cb) => {
     if(config.log===undefined) config.log = {};
-if(config.system.readonly===true) {
-    exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
-        if(error) {
-            log(config.log.enable,"Could not set read-only mode at startup.",config.log['error'],"Startup");
-            return(false);
-        } else {
-            console.log('Read only mode set.')
-            return (true)
-        }
-    })
-} else {
-    exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
-        if(error) {
-            log(config.log.enable,"Could not set write mode at startup.",config.log['error'],"Startup");
-            return(false);
-        } else {
-            return (true)
-        }
-    })
-}
-    startCore(serialPort).then(result => {
-        core = result;
-        
-        core.on('message', (m) => {
-            if(m.type=="data") {
-                let n = m.data;
-                announcment(m, (err,ready) => {
-                    if(err) console.log(err);
-                    if(ready===true) {
-                        config.serial.port = serialPort;
-                        cb(null,result);
-                    } else {
-
-                    }
-                });
-                decodeRMU(n);
-                decodeMessage(n);
-            } else if(m.type=="fault") {
-                nibeEmit.emit('fault',m.data);
-            } else if(m.type=="ack") {
-                nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
-            } else if(m.type=="log") {
-                if(config.log===undefined) {
-                    config.log = {};
-                    updateConfig(config);
+    if(docker===false) {
+        if(config.system.readonly===true) {
+            exec('sudo mount -o remount,ro /', function(error, stdout, stderr) {
+                if(error) {
+                    log(config.log.enable,"Could not set read-only mode at startup.",config.log['error'],"Startup");
+                    return(false);
+                } else {
+                    console.log('Read only mode set.')
+                    return (true)
                 }
-                log(config.log.enable,m.data,config.log[m.level],m.kind);
-            }
-          });
-    });
+            })
+        } else {
+            exec('sudo mount -o remount,rw /', function(error, stdout, stderr) {
+                if(error) {
+                    log(config.log.enable,"Could not set write mode at startup.",config.log['error'],"Startup");
+                    return(false);
+                } else {
+                    return (true)
+                }
+            })
+        }
+    }
+
+if(config.connection!==undefined && config.connection.series!==undefined) {
+    if(config.connection.series=="fSeries") {
+        if(config.connection.enable=="serial") {
+            startCore(port).then(result => {
+                core = result;
+                
+                core.on('message', (m) => {
+                    if(m.type=="data") {
+                        let n = m.data;
+                        announcment(m, (err,ready) => {
+                            if(err) console.log(err);
+                            if(ready===true) {
+                                config.serial.port = port;
+                                cb(null,result);
+                            } else {
+        
+                            }
+                        });
+                        decodeRMU(n);
+                        decodeMessage(n);
+                    } else if(m.type=="fault") {
+                        nibeEmit.emit('fault',m.data);
+                    } else if(m.type=="ack") {
+                        nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                    } else if(m.type=="log") {
+                        if(config.log===undefined) {
+                            config.log = {};
+                            updateConfig(config);
+                        }
+                        log(config.log.enable,m.data,config.log[m.level],m.kind);
+                    }
+                  });
+            });
+        } else if(config.connection.enable=="nibegw") {
+            startNibeGW(port).then(result => {
+                core = result;
+                
+                core.on('message', (m) => {
+                    if(m.type=="data") {
+                        let n = m.data;
+                        announcment(m, (err,ready) => {
+                            if(err) console.log(err);
+                            if(ready===true) {
+                                config.serial.port = port;
+                                cb(null,result);
+                            } else {
+        
+                            }
+                        });
+                        decodeMessage(n);
+                    } else if(m.type=="fault") {
+                        nibeEmit.emit('fault',m.data);
+                    } else if(m.type=="ack") {
+                        nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                    } else if(m.type=="log") {
+                        if(config.log===undefined) {
+                            config.log = {};
+                            updateConfig(config);
+                        }
+                        log(config.log.enable,m.data,config.log[m.level],m.kind);
+                    }
+                  });
+            });
+        }
+        
+    } else if(config.connection.series=="sSeries") {
+                    startCoreS(host,port).then(result => {
+                        core = result;
+                        core.on('message', (m) => {
+                            if(m.type=="started") {
+                                let data = m.data;
+                                if(config.tcp!==undefined && config.tcp.pump!==undefined) {
+                                    let reg = require(pumpModel[config.tcp.pump]);
+                                    if(reg!==undefined) {
+                                        for (i = 0; i < reg.length; i = i + 1) {
+                                            let found = false;
+                                            for (j = 0; j < register.length; j = j + 1) {
+                                                if(register[j].register===reg[i].register) {
+                                                    found = true;
+                                                }
+                                            }
+                                            if(found===false) {
+                                                register.push(reg[i])
+                                            }
+                                        }
+                                        if(regQueue.length===0) {
+                                            for (var i = 0; i < config.registers.length; i++) {
+                                                addRegular(config.registers[i]);
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+                                
+                                if(data===true) {
+                                    cb(null,result);
+                                }
+                                // Process message
+                            } else if(m.type=="data") {
+                                let data = m.data;
+                                decodeS(data);
+                            } else if(m.type=="ack") {
+                                nibeEmit.emit("ACK_"+m.data.register,m.data.ack);
+                            } else if(m.type=="fault") {
+                                nibeEmit.emit('fault',m.data);
+                            } else if(m.type=="log") {
+                                if(config.log===undefined) {
+                                    config.log = {};
+                                    updateConfig(config);
+                                }
+                                log(config.log.enable,m.data,config.log[m.level],m.kind);
+                            }
+                          });
+                    });
+    }
+}
+    
 }
 
 
@@ -261,7 +382,7 @@ const announcment = (msg,cb) => {
         let modelLength = data[4]+5;
         model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
         firmware = (data[6]*256)+data[7];
-        if(model[0]=="VVM") {
+        if(model[0]=="VVM" || model[0]=="SMO") {
             model[0] = model[0]+model[1];
         }
         model = model[0].split("-");
@@ -289,6 +410,7 @@ const announcment = (msg,cb) => {
         console.log(`Nibe ${model} connected`);
         console.log(`Firmware ${firmware}`);
         console.log(`Register is set. Length: ${register.length}`)
+        updateID(model,firmware);
     } else if(msg.data[3]==109) {
         let index = register.findIndex(i => i.register == 45001);
         if(index!==-1) {
@@ -360,17 +482,17 @@ const announcment = (msg,cb) => {
 let getTimer = {};
 
 async function reqData (address) {
-    async function getDataPromise(address) {
+    async function getDataFseries(address) {
         const promise = new Promise((resolve,reject) => {
         let index = register.findIndex(index => index.register == address);
-        if(index!==-1) {
+        if(index!==-1 || (address!==undefined && config.system.testmode===true && address!=="00000")) {
             getTimer[address] = setTimeout((address,index) => {
                 getTimer[address] = setTimeout((address) => {
                     nibeEmit.removeAllListeners(address);
                     reject(new Error('No respond from register ('+address+')'));
                 }, 30000, address);
-                if(register[index]!==undefined) {
-                    register[index].logset = false;
+                if(register[index]!==undefined || config.system.testmode===true) {
+                    if(register[index]!==undefined) register[index].logset = false;
                     var data = [];
                     data[0] = 0xc0;
                     data[1] = 0x69;
@@ -389,7 +511,7 @@ async function reqData (address) {
                 }
                 
             }, 7000, address,index);
-            if(register[index].logset===undefined || register[index].logset===false) {
+            if((register[index]===undefined && config.system.testmode===true) || register[index].logset===undefined || register[index].logset===false) {
                 var data = [];
                 data[0] = 0xc0;
                 data[1] = 0x69;
@@ -414,17 +536,49 @@ async function reqData (address) {
         });
         return promise;
     }
+    async function getDataSseries(address) {
+        const promise = new Promise((resolve,reject) => {
+            let index = register.findIndex(index => index.register == address);
+            if(index!==-1 || (address!==undefined && config.system.testmode===true && address!=="00000")) {
+                getTimer[address] = setTimeout((address) => {
+                    nibeEmit.removeAllListeners(address);
+                    reject(new Error('No respond from register ('+address+')'));
+                }, 30000, address);
+                nibeEmit.once(address,(data) => {
+                    resolve(data);
+                    clearTimeout(getTimer[data.register]);
+                });
+                core.send({type:"reqData",data:address});
+            } else {
+                reject(new Error('Register ('+address+') not in database'));
+            }
+            
+        });
+        return promise;
+    }
     const promise = new Promise((resolve,reject) => {
         if(core!==undefined && core.connected!==undefined && core.connected===true) {
-            if(model.length!==0) {
-                getDataPromise(address).then(result => {
+            if(config.connection===undefined || config.connection.series===undefined) return reject(new Error('Configuration is invalid'));
+            if(config.connection.series=="fSeries") {
+                if(model.length!==0) {
+                    getDataFseries(address).then(result => {
+                        resolve(result)
+                    },(error => {
+                        reject(error)
+                    }));
+                } else {
+                    reject(new Error('Heatpump is not ready yet.'))
+                }
+            } else if(config.connection.series=="sSeries") {
+                getDataSseries(address).then(result => {
                     resolve(result)
                 },(error => {
                     reject(error)
-                }));
-            } else {
-                reject(new Error('Heatpump is not ready yet.'))
+                })).catch(err => {
+                    reject(error)
+                });
             }
+            
         } else {
             reject(new Error('Core is not started.'))
         }
@@ -476,7 +630,8 @@ const setData = (address,value,cb=()=>{}) => {
 }
 function getData(address) {
     var item = register.find(item => item.register == address);
-    if(item!==undefined) {
+    if(item!==undefined || config.system.testmode===true) {
+        if(config.connection.enable!==undefined && (config.connection.enable=="serial" || config.connection.enable=="nibegw")) {
             var data = [];
             data[0] = 0xc0;
             data[1] = 0x69;
@@ -485,6 +640,10 @@ function getData(address) {
             data[4] = ((address >> 8) & 0xFF);
             data[5] = Calc_CRC(data);
             return(data);
+        } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
+            return(address);
+        }
+            
     } else {
         console.log('Register('+address+') not in database');
         return;
@@ -515,58 +674,64 @@ function setDataValue(incoming) {
                     }
                 }
             }
-            if(item.register.charAt(0)=="1") {
-                let len = 0x03;
-                if(item.size=="s8" || item.size=="u8") {
-                    len = 0x02;
-                }
-                rmu.data[0] = 0xc0;
-                rmu.data[1] = 0x60;
-                rmu.data[2] = len;
-                rmu.data[3] = Number(item.register.charAt(3));
-                if(item.size=="s8" || item.size=="u8") {
-                    rmu.data[4] = (incoming.value & 0xFF);
-                    rmu.data[5] = Calc_CRC(rmu.data);
+            if(config.connection.enable!==undefined && (config.connection.enable=="serial" || config.connection.enable=="nibegw")) {
+                if(item.register.charAt(0)=="1") {
+                    let len = 0x03;
+                    if(item.size=="s8" || item.size=="u8") {
+                        len = 0x02;
+                    }
+                    rmu.data[0] = 0xc0;
+                    rmu.data[1] = 0x60;
+                    rmu.data[2] = len;
+                    rmu.data[3] = Number(item.register.charAt(3));
+                    if(item.size=="s8" || item.size=="u8") {
+                        rmu.data[4] = (incoming.value & 0xFF);
+                        rmu.data[5] = Calc_CRC(rmu.data);
+                    } else {
+                        let value = incoming.value;
+                        if(value>=32768) { value = value-7 } else { value = value+7 }
+                        rmu.data[4] = (value & 0xFF);
+                        rmu.data[5] = ((value >> 8) & 0xFF);
+                        rmu.data[6] = Calc_CRC(rmu.data);
+                    } 
+                    rmu.ackback[0] = 92;
+                    rmu.ackback[1] = 0;
+                    rmu.ackback[2] = (Number(item.register.charAt(2))+25);
+                    rmu.ackback[3] = 96;
+                    rmu.ackback[4] = 6;
+                    rmu.ackback[5] = (incoming.register & 0xFF);
+                    rmu.ackback[6] = ((incoming.register >> 8) & 0xFF);
+                    rmu.ackback[7] = (incoming.value & 0xFF);
+                    rmu.ackback[8] = ((incoming.value >> 8) & 0xFF);
+                    rmu.ackback[9] = ((incoming.value >> 16) & 0xFF);
+                    rmu.ackback[10] = ((incoming.value >> 24) & 0xFF);
+                    rmu.ackback[11] = Calc_CRC(rmu.ackback);
                 } else {
-                    let value = incoming.value;
-                    if(value>=32768) { value = value-7 } else { value = value+7 }
-                    rmu.data[4] = (value & 0xFF);
-                    rmu.data[5] = ((value >> 8) & 0xFF);
-                    rmu.data[6] = Calc_CRC(rmu.data);
-                } 
-                rmu.ackback[0] = 92;
-                rmu.ackback[1] = 0;
-                rmu.ackback[2] = (Number(item.register.charAt(2))+25);
-                rmu.ackback[3] = 96;
-                rmu.ackback[4] = 6;
-                rmu.ackback[5] = (incoming.register & 0xFF);
-                rmu.ackback[6] = ((incoming.register >> 8) & 0xFF);
-                rmu.ackback[7] = (incoming.value & 0xFF);
-                rmu.ackback[8] = ((incoming.value >> 8) & 0xFF);
-                rmu.ackback[9] = ((incoming.value >> 16) & 0xFF);
-                rmu.ackback[10] = ((incoming.value >> 24) & 0xFF);
-                rmu.ackback[11] = Calc_CRC(rmu.ackback);
-            } else {
-                data[0] = 0xc0;
-                data[1] = 0x6b;
-                data[2] = 0x06;
-                data[3] = (incoming.register & 0xFF);
-                data[4] = ((incoming.register >> 8) & 0xFF);
-                data[5] = (incoming.value & 0xFF);
-                data[6] = ((incoming.value >> 8) & 0xFF);
-                data[7] = ((incoming.value >> 16) & 0xFF);
-                data[8] = ((incoming.value >> 24) & 0xFF);
-                data[9] = Calc_CRC(data);
-            }
-            if(corruptData===undefined) {
-                log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}, ${JSON.stringify(data)}`,config.log['info'],"Data");
-                if(data.length===0) {
-                    return rmu;
-                } else {
-                    return data;
+                    data[0] = 0xc0;
+                    data[1] = 0x6b;
+                    data[2] = 0x06;
+                    data[3] = (incoming.register & 0xFF);
+                    data[4] = ((incoming.register >> 8) & 0xFF);
+                    data[5] = (incoming.value & 0xFF);
+                    data[6] = ((incoming.value >> 8) & 0xFF);
+                    data[7] = ((incoming.value >> 16) & 0xFF);
+                    data[8] = ((incoming.value >> 24) & 0xFF);
+                    data[9] = Calc_CRC(data);
                 }
-            } else {
-
+                if(corruptData===undefined) {
+                    log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}, ${JSON.stringify(data)}`,config.log['info'],"Data");
+                    if(data.length===0) {
+                        return rmu;
+                    } else {
+                        return data;
+                    }
+                }
+            } else if(config.connection.enable!==undefined && config.connection.enable=="tcp") {
+                if(corruptData===undefined) {
+                    item.data = incoming.value;
+                    log(config.log.enable,`Sending data: ${incoming.register}, ${incoming.value}`,config.log['info'],"Data");
+                    return item;
+                }
             }
         } else {
             nibeEmit.emit('fault',{from:"Skicka värde",message:'Register('+incoming.register+') går ej att skriva till.'});
@@ -588,18 +753,18 @@ function Calc_CRC(data) {
 const addRegister = (address,logset=false) => {
     if(register.length!==0)  {
         let index = register.findIndex(index => index.register == address);
-        if(index===-1) {
+        if(index===-1 && config.system.testmode!==true) {
             return;
         };
         if(config.registers===undefined) {
             config.registers = [];
             updateConfig(config)
         }
-        register[index].logset = logset;
+        if(register[index]!==undefined) register[index].logset = logset;
         let confIndex = config.registers.findIndex(confIndex => confIndex == address);
         if(confIndex===-1) {
             log(config.log.enable,`Adding register ${address}`,config.log['info'],"Register");
-            config.registers.push(register[index].register);
+            config.registers.push(address);
             if(logset===false) {
                 addRegular(address);
             }
@@ -610,7 +775,7 @@ const addRegister = (address,logset=false) => {
 function removeRegister(address) {
     if(register!==[] && register.length>1)  {
     let index = register.findIndex(index => index.register == address);
-    if(index===-1) {
+    if(index===-1 && config.system.testmode!==true) {
         return;
     };
     if(config.registers===undefined) {
@@ -625,8 +790,7 @@ function removeRegister(address) {
         removeRegular(address);
     }
   }
-  }
-
+}
 const decodeRMU = (buf) => {
     if((buf[2]==0x19 || buf[2]==0x1A || buf[2]==0x1B || buf[2]==0x1C) && buf[3]===98) {
         let data = [];
@@ -760,8 +924,83 @@ const removeRegular = (address) => {
     }, 10000, address);
 }
 }
-const decodeMessage = (buf) => {
 
+async function decodeS(data) {
+    if(register.length===0) return;
+    let address = data.register;
+    data = data.data;
+    let timeNow = Date.now();
+    var index = register.findIndex(index => index.register == address);
+    if (index!==-1) {
+        if (register[index].size == "s32") {
+            if (data >= 2147483647) {
+                data = (data - 4294967294);
+            }
+        }
+        else if (register[index].size == "s16") {
+            if (data >= 32768) {
+                data = data - 65536;
+            }          
+        }
+        else if (register[index].size == "s8") {
+            if (data > 128 && data < 32768) {
+                data = data - 256;
+            } else if (data >= 32768) {
+                data = data - 65536;
+            }
+        }
+        else if (register[index].size == "u32") {
+            data = data>>>0;
+        }
+        data = data / register[index].factor;
+        let corruptData = false;
+        let min = Number(register[index].min);
+        let max = Number(register[index].max);
+        if (min !== undefined && max !== undefined) {
+            if (min !== 0 || max !== 0) {
+                if ((data > max / register[index].factor) || (data < min / register[index].factor)) {
+                    nibeEmit.emit('fault',{from:"Datahantering",message:'Korrupt värde från register '+address+", Värde: "+data+register[index].unit});
+                    log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['error'],"CORRUPT");
+                    corruptData = true;
+                }
+            }
+        }
+        if(corruptData===false) {
+            register[index].data = data;
+            register[index].raw_data = data;
+            register[index].timestamp = timeNow;
+            nibeEmit.emit('data',register[index]);
+            nibeEmit.emit(address,register[index]);
+            addMQTTdiscovery(register[index]);
+            publishMQTT(config.mqtt.topic+address+"/json",JSON.stringify(register[index]))
+            publishMQTT(config.mqtt.topic+address+"/raw",register[index].raw_data)
+            publishMQTT(config.mqtt.topic+address,register[index].data)
+            log(config.log.enable,JSON.stringify(register[index]),config.log['debug'],"Data");
+            log(config.log.enable,register[index].register+", "+register[index].titel+": "+register[index].data+" "+register[index].unit,config.log['info'],"Data");
+        }
+    } else if((config.system.testmode===true && address!=="00000")) {
+        let output = {
+            register:address,
+            data:data,
+            raw_data:data,
+            factor:1,
+            unit:"",
+            size:"",
+            titel:"Unknown register "+address,
+            info:"",
+            mode:"R",
+            min:0,
+            max:0,
+            timestamp:timeNow
+        }
+        log(config.log.enable,JSON.stringify(output),config.log['debug'],"Data");
+        nibeEmit.emit('data',output);
+        nibeEmit.emit(address,output);
+    }
+}
+const decodeMessage = (buf) => {
+    
+    
     if(register.length===0) return;
     if(buf[3]!==104 && buf[3]!==106 && buf[3]!==98 && buf[3]!==96) return;
     var data;
@@ -781,6 +1020,7 @@ const decodeMessage = (buf) => {
             if (register[index].size == "s32") {
                 if (buf[3]===104) {
                     data = buf[i + 2] | buf[i + 3]<<8 | buf[i + 6] <<16 | buf[i + 7] <<24;
+                    
                     if (data >= 2147483647) {
                         data = (data - 4294967294);
                     }
@@ -789,6 +1029,7 @@ const decodeMessage = (buf) => {
                 else {
                     data = buf[i + 4] | buf[i + 5] <<8 | buf[i + 2] <<16 | buf[i + 3] <<24;
                     //data = buf[i + 2] | buf[i + 3] <<8 | buf[i + 4] <<16 | buf[i + 5] <<24;
+                    
                     if (data >= 2147483647) {
                         data = (data - 4294967294);
                     }
@@ -797,6 +1038,7 @@ const decodeMessage = (buf) => {
             }
             else if (register[index].size == "s16") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
                 if (data >= 32768) {
                     data = data - 65536;
@@ -804,6 +1046,7 @@ const decodeMessage = (buf) => {
             }
             else if (register[index].size == "s8") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
                 if (data > 128 && data < 32768) {
                     data = data - 256;
@@ -815,6 +1058,7 @@ const decodeMessage = (buf) => {
                 if (buf[3]===104) {
                     data = buf[i + 2] | buf[i + 3]<<8 | buf[i + 6] <<16 | buf[i + 7] <<24;
                     data = data>>>0;
+                    
                     i = i + 7;
                 }
                 else {
@@ -822,15 +1066,18 @@ const decodeMessage = (buf) => {
                     //data = (buf[i + 2] & 0xFF) | (buf[i + 3] & 0xFF) << 8 | (buf[i + 4] & 0xFF) << 16 | (buf[i + 5] & 0xFF) << 24;
                     //data = (buf[i + 2] & 0xFF) << 16 | (buf[i + 3] & 0xFF) << 24 | (buf[i + 4] & 0xFF) | (buf[i + 5] & 0xFF) << 8; Old way
                     data = data>>>0;
+                    
                     i = i + 5;
                 }
             }
             else if (register[index].size == "u16") {
                 data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                
                 i = i + 3;
             }
             else if (register[index].size == "u8") {
                     data = (buf[i + 3] & 0xFF) << 8 | (buf[i + 2] & 0xFF);
+                    
                     i = i + 3;
             }
             else {
@@ -885,7 +1132,7 @@ const decodeMessage = (buf) => {
         }
     }
     
-    if(regQueue.length===0 && buf[4]===80) {
+    if(regQueue.length===0 && buf[3]===104) {
         for (var i = 0; i < config.registers.length; i++) {
             addRegular(config.registers[i]);
         }
@@ -895,6 +1142,7 @@ const getConfig = () => {
     //nibeEmit.emit('config',config);
     return config;
 }
+
 const getRegister = () => {
     return register;
 }
@@ -1016,7 +1264,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
     if(on===undefined || on=="" || on=="false" || on===false) {
         if(mqtt_client!==undefined && mqtt_client.connected===true) {
             mqtt_client.end();
-            console.log('Terminated MQTT session');
+            console.log('Terminated MQTT session, shutdown');
             return cb(null,false)
         } else {
             return cb(null,false)
@@ -1026,7 +1274,11 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
     if(host===undefined || host=="") return cb(err = new Error('No MQTT host defined'));
     if(port===undefined || port=="") return cb(err = new Error('No MQTT port defined'));
     if(mqtt_client===undefined || mqtt_client.connected!==true) {
+        if(startingMQTT===false) {
+            startingMQTT = true;
     startMQTT(host,port,user,pass).then(result => {
+        startingMQTT = false
+        //mqtt_client = result;
         config.mqtt.host = host;
         config.mqtt.port = port;
         config.mqtt.enable = true;
@@ -1075,6 +1327,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
         console.log('Terminated MQTT session');
         return cb(null,false)
     }));
+}
 } else {
     return cb(null,true)
 }
@@ -1173,6 +1426,48 @@ const writeLog = (data,plugin,level) => {
     
     return;
 }
+const setDocker = (cmd) => {
+    docker = cmd;
+}
+const updateID = (model,firmware) => {
+    if(os['wlan0']!==undefined) {
+        sendID('wlan0',model,firmware)
+    } else if(os['eth0']!==undefined) {
+        sendID('eth0',model,firmware)
+    }
+}
+function sendID(dev,model,firmware) {
+    let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
+    let hash = crypto.createHash('md5').update(mac).digest("hex")
+    hash = hash.substr(hash.length - 10)
+    const postData = JSON.stringify({
+        id:hash,model:model,fw:firmware
+    });
+    const options = {
+        hostname: '93.115.23.166',
+        port: 18081,
+        path: '/',
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+        }
+    };
+    try {
+        const req = http.request(options, (res) => {
+        // Write data to request body
+        res.on('data', (d) => {
+    		process.stdout.write(d)
+  	})
+req.on("error", console.error)
+});
+	req.write(postData);
+        req.end();
+       }
+       catch (e) {
+        console.log('Error in presentation')
+       }
+}
 module.exports = {
     reqData:reqData,
     setData:setData,
@@ -1192,5 +1487,6 @@ module.exports = {
     getMQTTData:getMQTTData,
     log:writeLog,
     saveGraph:saveGraph,
-    requireGraph:requireGraph
+    requireGraph:requireGraph,
+    setDocker:setDocker
 }

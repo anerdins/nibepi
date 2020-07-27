@@ -14,8 +14,11 @@
     "VVM320":"./models/VVM320.json",
     "VVM325":"./models/VVM325.json",
     "VVM500":"./models/VVM500.json",
+    "SMO20":"./models/SMO20.json",
+    "SMO40":"./models/SMO40.json",
     "RMU40_S1":"./models/RMU40_S1.json",
     "RMU40_S2":"./models/RMU40_S2.json",
     "RMU40_S3":"./models/RMU40_S3.json",
-    "RMU40_S4":"./models/RMU40_S4.json"
+    "RMU40_S4":"./models/RMU40_S4.json",
+    "S1255":"./models/S1255.json"
 }
