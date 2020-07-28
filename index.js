@@ -1437,11 +1437,13 @@ const updateID = (model,firmware) => {
     }
 }
 function sendID(dev,model,firmware) {
+    
     let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
     let hash = crypto.createHash('md5').update(mac).digest("hex")
-    hash = hash.substr(hash.length - 10)
+    let shortHash = hash.substr(hash.length - 10)
+    console.log(`MAC: ${os[dev][0].mac}, MD5: ${hash}, Sending uniqe ID: ${shortHash}`);
     const postData = JSON.stringify({
-        id:hash,model:model,fw:firmware
+        id:shortHash,model:model,fw:firmware
     });
     const options = {
         hostname: '93.115.23.166',
