@@ -31,6 +31,7 @@ var child = require('child_process');
 const os = require('os').networkInterfaces();
 const crypto = require('crypto')
 const http = require('http');
+let ts_cloud = Date.now();
 var docker = false;
 let exec = child.exec;
 let spawn = child.spawn;
@@ -412,6 +413,7 @@ const announcment = (msg,cb) => {
         console.log(`Register is set. Length: ${register.length}`)
         updateID(model,firmware);
     } else if(msg.data[3]==109) {
+        
         let index = register.findIndex(i => i.register == 45001);
         if(index!==-1) {
             reqData(45001).then(atad => {
@@ -446,6 +448,12 @@ const announcment = (msg,cb) => {
                 console.log(`Firmware ${firmware}`);
                 console.log(`Register is set. Length: ${register.length}`)
             });
+        } else {
+            // Check if ping update to Anerdin cloud should occur
+            if(Date.now()>(ts_cloud+(30*60000))) {
+                ts_cloud = Date.now();
+                updateID(model,firmware);
+            }
         }
     } else if(msg.data[3]==98) {
         //log('info',msg.data)
@@ -1142,6 +1150,10 @@ const getConfig = () => {
     //nibeEmit.emit('config',config);
     return config;
 }
+const refreshConfig = () => {
+    nibeEmit.emit('config',config);
+    return config;
+}
 
 const getRegister = () => {
     return register;
@@ -1441,12 +1453,14 @@ function sendID(dev,model,firmware) {
     let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
     let hash = crypto.createHash('md5').update(mac).digest("hex")
     let shortHash = hash.substr(hash.length - 10)
-    console.log(`MAC: ${os[dev][0].mac}, MD5: ${hash}, Sending uniqe ID: ${shortHash}`);
+    let version;
+    if(config.update!==undefined) version = config.update.version;
     const postData = JSON.stringify({
-        id:shortHash,model:model,fw:firmware
+        id:shortHash,model:model,fw:firmware,version:version
     });
+    log(config.log.enable,`Posting following information to Anerdins Cloud: ${postData}, `,config.log['debug'],"Cloud");
     const options = {
-        hostname: '93.115.23.166',
+        hostname: 'dev.anerdins.se',
         port: 18081,
         path: '/',
         method: 'POST',
@@ -1459,10 +1473,25 @@ function sendID(dev,model,firmware) {
         const req = http.request(options, (res) => {
         // Write data to request body
         res.on('data', (d) => {
-    		process.stdout.write(d)
+            process.stdout.write(d+"\n")
+        
   	})
-req.on("error", console.error)
+
 });
+req.on('socket', function(socket) {
+    socket.setTimeout(5000, function () {   // set short timeout so discovery fails fast
+        //console.log('Timeout connecting to ' + options.hostname);
+        req.abort();    // kill socket
+    });
+    socket.on('error', function (err) { // this catches ECONNREFUSED events
+        //console.log('Connection refused connecting to ' + options.hostname);
+        req.abort();    // kill socket
+    });
+}); // handle connection events and errors
+req.on("error", (err) => {
+    //console.log(err);
+})
+
 	req.write(postData);
         req.end();
        }
@@ -1470,6 +1499,9 @@ req.on("error", console.error)
         console.log('Error in presentation')
        }
 }
+//process.on('uncaughtException', function (err) {
+//    console.log(err);
+//}); 
 module.exports = {
     reqData:reqData,
     setData:setData,
@@ -1490,5 +1522,6 @@ module.exports = {
     log:writeLog,
     saveGraph:saveGraph,
     requireGraph:requireGraph,
-    setDocker:setDocker
+    setDocker:setDocker,
+    refreshConfig:refreshConfig
 }
