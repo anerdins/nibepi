@@ -62,7 +62,17 @@ process.on('message', (m) => {
             }
         }
     } else if(m.type=="reqData") {
-        getQueue.unshift(m.data);
+        if(m.data!==undefined) {
+            let found = false;
+            for (i = 0; i < getQueue.length; i = i + 1) {
+                let address = (getQueue[i][4]*256)+getQueue[i][3];
+                if((m.data[4]*256)+m.data[3]==address) {
+                    found = true;
+                }
+            }
+            if(found===false) getQueue.unshift(m.data)
+        }
+        ;
     } else if(m.type=="setData") {
         sendQueue.push(m.data);
     } else if(m.type=="rmuSet") {
