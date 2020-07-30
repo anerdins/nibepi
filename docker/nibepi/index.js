@@ -28,10 +28,6 @@ const startNibeGW = Core.startNibeGW;
 const stopCore = require(__dirname+'/lib/stopCore');
 var log = require('./log');
 var child = require('child_process');
-const os = require('os').networkInterfaces();
-const crypto = require('crypto')
-const http = require('http');
-let ts_cloud = Date.now();
 var docker = false;
 let exec = child.exec;
 let spawn = child.spawn;
@@ -373,6 +369,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                           });
                     });
     }
+    
 }
     
 }
@@ -383,7 +380,7 @@ const announcment = (msg,cb) => {
         let modelLength = data[4]+5;
         model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
         firmware = (data[6]*256)+data[7];
-        if(model[0]=="VVM" || model[0]=="SMO") {
+        if(model[0]=="VVM") {
             model[0] = model[0]+model[1];
         }
         model = model[0].split("-");
@@ -411,9 +408,7 @@ const announcment = (msg,cb) => {
         console.log(`Nibe ${model} connected`);
         console.log(`Firmware ${firmware}`);
         console.log(`Register is set. Length: ${register.length}`)
-        updateID(model,firmware);
     } else if(msg.data[3]==109) {
-        
         let index = register.findIndex(i => i.register == 45001);
         if(index!==-1) {
             reqData(45001).then(atad => {
@@ -448,12 +443,6 @@ const announcment = (msg,cb) => {
                 console.log(`Firmware ${firmware}`);
                 console.log(`Register is set. Length: ${register.length}`)
             });
-        } else {
-            // Check if ping update to Anerdin cloud should occur
-            if(Date.now()>(ts_cloud+(30*60000))) {
-                ts_cloud = Date.now();
-                updateID(model,firmware);
-            }
         }
     } else if(msg.data[3]==98) {
         //log('info',msg.data)
@@ -798,6 +787,56 @@ function removeRegister(address) {
         removeRegular(address);
     }
   }
+  }
+  const addRegular = (address) => {
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+        log(config.log.enable,`Adding regular register (${address})`,config.log['debug'],"Register");
+    let regIndex = register.findIndex(regIndex => regIndex.register == address);
+    if(register[regIndex]===undefined && config.system.testmode!==true) {
+        log(config.log.enable,`Regular register (${address}) not in database`,config.log['debug'],"Register");
+        return;
+    };
+    if((config.system.testmode!==true && register[regIndex]===-1) || (register[regIndex]!==undefined && register[regIndex].logset!==undefined && register[regIndex].logset===true)) {
+        log(config.log.enable,`Regular register (${address}) not in database or logset register`,config.log['debug'],"Register");
+        return;
+    }
+    let index = regQueue.findIndex(index => index == getData(address));
+    if(index===-1) {
+        if(address.toString().charAt(0)=="1") {
+            log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
+        } else {
+            // Req data change
+            reqData(address);
+            regQueue.push(getData(address));
+            log(config.log.enable,`Regular register added (${getData(address)})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+        
+        //
+        
+    }
+} else {
+    setTimeout((data) => {
+        addRegular(data)
+    }, 10000, address);
+}
+}
+  const removeRegular = (address) => {
+    var stringed = getData(address).toString();
+    if(core!==undefined && core.connected!==undefined && core.connected===true) {
+    for (i = 0; i < regQueue.length; i = i + 1) {
+        let value = regQueue[i].toString();
+        if(stringed===value) {
+            regQueue.splice(i,1)
+            log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
+            core.send({type:"regRegister",data:regQueue});
+        }
+    }
+} else {
+    setTimeout((data) => {
+        removeRegular(data);
+    }, 10000, address);
+}
 }
 const decodeRMU = (buf) => {
     if((buf[2]==0x19 || buf[2]==0x1A || buf[2]==0x1B || buf[2]==0x1C) && buf[3]===98) {
@@ -889,50 +928,6 @@ const decodeRMU = (buf) => {
         if(i===27) address = 10012;*/
     }
 }
-const addRegular = (address) => {
-    if(core!==undefined && core.connected!==undefined && core.connected===true) {
-    let regIndex = register.findIndex(regIndex => regIndex.register == address);
-    if(register[regIndex]===undefined) return;
-    if(register[regIndex]===-1 || (register[regIndex].logset!==undefined && register[regIndex].logset===true)) return;
-    let index = regQueue.findIndex(index => index == getData(address));
-    if(index===-1) {
-        if(address.toString().charAt(0)=="1") {
-            log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
-        } else {
-            // Req data change
-            reqData(address);
-            regQueue.push(getData(address));
-            log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
-            core.send({type:"regRegister",data:regQueue});
-        }
-        
-        //
-        
-    }
-} else {
-    setTimeout((data) => {
-        addRegular(data)
-    }, 10000, address);
-}
-}
-const removeRegular = (address) => {
-    var stringed = getData(address).toString();
-    if(core!==undefined && core.connected!==undefined && core.connected===true) {
-    for (i = 0; i < regQueue.length; i = i + 1) {
-        let value = regQueue[i].toString();
-        if(stringed===value) {
-            regQueue.splice(i,1)
-            log(config.log.enable,`Regular register removed (${address})`,config.log['info'],"Register");
-            core.send({type:"regRegister",data:regQueue});
-        }
-    }
-} else {
-    setTimeout((data) => {
-        removeRegular(data);
-    }, 10000, address);
-}
-}
-
 async function decodeS(data) {
     if(register.length===0) return;
     let address = data.register;
@@ -1150,10 +1145,6 @@ const getConfig = () => {
     //nibeEmit.emit('config',config);
     return config;
 }
-const refreshConfig = () => {
-    nibeEmit.emit('config',config);
-    return config;
-}
 
 const getRegister = () => {
     return register;
@@ -1295,6 +1286,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
         config.mqtt.port = port;
         config.mqtt.enable = true;
         result.subscribe(config.mqtt.topic+'#');
+        
         updateSensors();
         if(mqtt_client!==undefined && mqtt_client.connected===true) {
             mqtt_client.on('message', function (topic, message) {
@@ -1441,67 +1433,6 @@ const writeLog = (data,plugin,level) => {
 const setDocker = (cmd) => {
     docker = cmd;
 }
-const updateID = (model,firmware) => {
-    if(os['wlan0']!==undefined) {
-        sendID('wlan0',model,firmware)
-    } else if(os['eth0']!==undefined) {
-        sendID('eth0',model,firmware)
-    }
-}
-function sendID(dev,model,firmware) {
-    
-    let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
-    let hash = crypto.createHash('md5').update(mac).digest("hex")
-    let shortHash = hash.substr(hash.length - 10)
-    let version;
-    if(config.update!==undefined) version = config.update.version;
-    const postData = JSON.stringify({
-        id:shortHash,model:model,fw:firmware,version:version
-    });
-    log(config.log.enable,`Posting following information to Anerdins Cloud: ${postData}, `,config.log['debug'],"Cloud");
-    const options = {
-        hostname: 'dev.anerdins.se',
-        port: 18081,
-        path: '/',
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-        }
-    };
-    try {
-        const req = http.request(options, (res) => {
-        // Write data to request body
-        res.on('data', (d) => {
-            process.stdout.write(d+"\n")
-        
-  	})
-
-});
-req.on('socket', function(socket) {
-    socket.setTimeout(5000, function () {   // set short timeout so discovery fails fast
-        //console.log('Timeout connecting to ' + options.hostname);
-        req.abort();    // kill socket
-    });
-    socket.on('error', function (err) { // this catches ECONNREFUSED events
-        //console.log('Connection refused connecting to ' + options.hostname);
-        req.abort();    // kill socket
-    });
-}); // handle connection events and errors
-req.on("error", (err) => {
-    //console.log(err);
-})
-
-	req.write(postData);
-        req.end();
-       }
-       catch (e) {
-        console.log('Error in presentation')
-       }
-}
-//process.on('uncaughtException', function (err) {
-//    console.log(err);
-//}); 
 module.exports = {
     reqData:reqData,
     setData:setData,
@@ -1522,6 +1453,5 @@ module.exports = {
     log:writeLog,
     saveGraph:saveGraph,
     requireGraph:requireGraph,
-    setDocker:setDocker,
-    refreshConfig:refreshConfig
+    setDocker:setDocker
 }

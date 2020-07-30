@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+nibepi/modbus-server.js
+nibepi/modbus-tcp.js
+nibepi/test.js
+nibepi/example.js
+nibepi/example-nibeS.js
+nibepi/example-nibeF.js
+nibepi/.git
+nibepi/.gitignore
+config
+docker-compose.yml
+config.json

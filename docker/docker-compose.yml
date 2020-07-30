@@ -1,0 +1,12 @@
+version: '3'
+services:
+  nibepi:
+    container_name: "nibepi"
+    build: .
+#    image: anerdins/nibepi-base
+    volumes:
+       - /home/pi/nibepi/config:/etc/nibepi
+       - "/etc/localtime:/etc/localtime:ro"
+       - "/etc/timezone:/etc/timezone:ro"
+    network_mode: "host"
+    user: "1000"
