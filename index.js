@@ -1453,6 +1453,10 @@ function sendID(dev,model,firmware) {
     let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
     let hash = crypto.createHash('md5').update(mac).digest("hex")
     let shortHash = hash.substr(hash.length - 10)
+    if(config.system!==undefined && (config.system.id===undefined || config.system.id===0)) {
+        config.system.id = shortHash;
+        updateConfig(config);
+    }
     let version;
     if(config.update!==undefined) version = config.update.version;
     const postData = JSON.stringify({
@@ -1499,9 +1503,6 @@ req.on("error", (err) => {
         console.log('Error in presentation')
        }
 }
-//process.on('uncaughtException', function (err) {
-//    console.log(err);
-//}); 
 module.exports = {
     reqData:reqData,
     setData:setData,
