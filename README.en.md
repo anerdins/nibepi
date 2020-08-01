@@ -50,6 +50,7 @@ network={
 ```
 
 Install NibePi
+```
 Step 1: Remove the upper hatch, no screws, just take it off.
 Step 2: Remove the two large torx T30 screws at the bottom of the heatpump which is holding the big front hatch.
 Step 3: Pull the hatch out approx 10-20 cm and lift the whole front off and put it to the side.
