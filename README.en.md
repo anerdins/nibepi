@@ -1,6 +1,7 @@
 # nibepi
 Follow this project on Facebook! https://www.facebook.com/groups/nibepi/
 
+![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi-pic.jpg)
 NibePi is an IoT product for your Nibe heatpump
 With a Raspberry Pi Zero+RS485 HAT you can communicate with your heatpump by serial protocol. NibePi can fit inside the shell of the heatpump and be powered directly from the terminals.
 NibePi supports a lot of Nibe heatpumps, including: Nibe F370,F470,F730,F750,F1145,F1245,F1155,F1255,VVM225,310,320,325,500.SMO20-40<br>
