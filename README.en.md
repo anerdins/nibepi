@@ -58,7 +58,9 @@ Step 4: Remove the snap-in lid, picture below..
 ```
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_1.jpg)
 ```
-Step 5: Connect your NibePi according to the picture below<br>
+Step 5: Connect your NibePi according to the picture below
+```
+```
 Please note that the connections can differ from one heatpump to another, check the manual for more info to find the right connections (12v,A,B,GND)
 https://www.nibe.fi/nibedocuments/15050/031725-6.pdf 
 ```
