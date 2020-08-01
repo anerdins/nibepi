@@ -54,17 +54,17 @@ Install NibePi
 Step 1: Remove the upper hatch, no screws, just take it off.
 Step 2: Remove the two large torx T30 screws at the bottom of the heatpump which is holding the big front hatch.
 Step 3: Pull the hatch out approx 10-20 cm and lift the whole front off and put it to the side.
-Step 5: Remove the snap-in lid, picture below..
+Step 4: Remove the snap-in lid, picture below..
 ```
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_1.jpg)
 ```
-Step 6: Connect your NibePi according to the picture below<br>
+Step 5: Connect your NibePi according to the picture below<br>
 Please note that the connections can differ from one heatpump to another, check the manual for more info to find the right connections (12v,A,B,GND)
 https://www.nibe.fi/nibedocuments/15050/031725-6.pdf 
 ```
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_2.jpg)
 ```
-Step 7: Start the heatpump with the SD-card plugged into NibePi.
+Step 6: Start the heatpump with the SD-card plugged into NibePi.
 ```
 ```
 Activate Modbus in the heatpump.
