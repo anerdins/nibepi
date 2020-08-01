@@ -30,3 +30,55 @@ https://www.kiwi-electronics.nl/wide-input-shim<br>
 https://www.electrokit.com/produkt/wide-input-shim-3-16v/<br>
 SD-card:<br>
 https://www.clasohlson.com/se/MicroSDHC-SDXC-minneskort-Klass-10,-Kingston/38-5562<br>
+
+Solder terminals or wires on A and B at the RS485 card, then stack all the cards together on a header and solder them as tight as possible against eachother for the minimal build height.<br>
+
+Download the complete image and burn to the 16GB SD-card.<br>
+http://anerdins.se/NibePi/nibepi_1.1.rar (1.1)<br>
+
+On the boot partition at the SD-card (also available in Windows) there is a file called wpa_supplicant.conf, update with your own wifi credentials and save.
+```
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=SE
+
+network={
+	ssid="YOUR_WIFI"
+	psk="YOUR_PASSWORD"
+	key_mgmt=WPA-PSK
+}
+```
+
+Install NibePi
+Step 1: Remove the upper hatch, no screws, just take it off.
+Step 2: Remove the two large torx T30 screws at the bottom of the heatpump which is holding the big front hatch.
+Step 3: Pull the hatch out approx 10-20 cm and lift the whole front off and put it to the side.
+Step 5: Remove the snap-in lid, picture below..
+```
+![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_1.jpg)
+```
+Step 6: Connect your NibePi according to the picture below<br>
+Please note that the connections can differ from one heatpump to another, check the manual for more info to find the right connections (12v,A,B,GND)
+https://www.nibe.fi/nibedocuments/15050/031725-6.pdf 
+```
+![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_2.jpg)
+```
+Step 7: Start the heatpump with the SD-card plugged into NibePi.
+```
+```
+Activate Modbus in the heatpump.
+Step 1: Hold the "Back" button for approx 7 seconds, one new service menu will popup, enter it.
+Step 2: Go to, System settings 5.2, in some models you have to click another menu to see the list for the possible accessories.
+Step 3: Scroll down and look for "Modbus", check it.
+Step 4: The heatpump might raise an red alarm if NibePi has not started yet. Or the light will remain green and then the heatpump has a connection to NibePi.
+```
+
+
+Node-RED is now available at NibePi's hostname. http://nibepi:1880<br>
+The webinterface for NibePi (based on Node-red) is available at http://nibepi:1880/ui<br>
+If the above example doesn't work, please try with NibePis IP address instead of the hostname.
+
+Not it's all done!
+If you appreciate my work, you can sponsor me with a coffee
+
+https://www.buymeacoffee.com/0oKFXbQ
