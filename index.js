@@ -45,6 +45,10 @@ let mqttData = {};
 let mqttDiscoverySensors = [];
 let red = false;
 let config;
+// Encryption
+const algorithm = 'aes-256-cbc';
+let iv = Buffer([0xe3,0x61,0xb1,0x71,0x30,0xa9,0x1c,0x79,0x0c,0xa5,0x9f,0xa1,0x4e,0xc8,0x6a,0x65]);
+
 const regQueue = [];
 var pumpModel = require(__dirname+'/lib/models.json')
 const EventEmitter = require('events').EventEmitter
@@ -62,7 +66,11 @@ if (!fs.existsSync(path)) {
         }
     });
 }
-
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+  }
 function requireF(modulePath){ // force require
     try {
      return require(modulePath);
@@ -1317,9 +1325,18 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                     topic = topic.replace(config.mqtt.topic,'')
                     topic = topic.split('/');
                     if(topic.includes('set')) {
-                        setData(topic[0],message,(err,result) => {
-                            if(err) return console.log(err);
-                        });
+                        if(topic[0]=="sms") {
+                            if(topic[1]!==undefined && topic[1]!="set") {
+                                let n = topic[1];
+                                let t = message.toString();
+                                sendText(n,t).catch(err => console.log(err));
+                            }
+                        } else {
+                            setData(topic[0],message,(err,result) => {
+                                if(err) return console.log(err);
+                            });
+                        }
+                        
                     } else if(topic.includes('get')) {
                         reqData(topic[0]);
                     } else if(topic.includes('add')) {
@@ -1441,7 +1458,107 @@ const writeLog = (data,plugin,level) => {
 const setDocker = (cmd) => {
     docker = cmd;
 }
+const sendText = (n,t) => {
+    const promise = new Promise((resolve,reject) => {
+        // Encrypt the message
+        let text;
+        if(config.system.pin!==undefined && config.system.pin!="") {
+            const key = crypto
+                .createHash("sha256")
+                .update(config.system.pin)
+                .digest();
+            text = encrypt(key,JSON.stringify({n:n,t:t}))
+        } else {
+            // No pin code error
+            return reject(new Error('No pin code set'))
+        }
+        if(text===undefined) return reject(new Error('Error in encryption'))
+        if(config.system.id!==undefined && config.system.id!="") {
+            const postData = JSON.stringify({
+                id:config.system.id,body:text
+            });
+            const options = {
+                hostname: 'dev.anerdins.se',
+                port: 18082,
+                path: '/',
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(postData)
+                }
+            };
+            try {
+                const req = http.request(options, (res) => {
+                // Write data to request body
+                    
+                        let body = [];
+                        res.on('data', (chunk) => {
+                        body.push(chunk);
+                        }).on('end', () => {
+                            try {
+                                const key = crypto
+                                .createHash("sha256")
+                                .update(config.system.pin)
+                                .digest();
+                                try {
+                                    body = JSON.parse(Buffer.concat(body).toString());
+                                    //process.stdout.write("Encrypted: "+JSON.stringify(body)+"\n")
+                                    let decrypted = decrypt(key,body)
+                                    //process.stdout.write("Decrypted:\n"+decrypted+"\n")
+                                    resolve(decrypted)
+                                } catch (e) {
+                                    body = Buffer.concat(body).toString();
+                                    process.stdout.write("Response: "+body+"\n")
+                                    resolve(body)
+                                }
+                            
+                            }
+                            catch (e) {
+
+                                console.log(e)
+                                return reject(e)
+                            }
+                            
+                               
+                        // at this point, `body` has the entire request body stored in it as a string
+                        });
+        
+        });
+        req.on('socket', function(socket) {
+            socket.setTimeout(5000, function () {   // set short timeout so discovery fails fast
+                //console.log('Timeout connecting to ' + options.hostname);
+                req.abort();    // kill socket
+                return reject(new Error('Connection timeout to the cloud'))
+            });
+            socket.on('error', function (err) { // this catches ECONNREFUSED events
+                //console.log('Connection refused connecting to ' + options.hostname);
+                req.abort();    // kill socket
+                return reject(err)
+            });
+        }); // handle connection events and errors
+        req.on("error", (err) => {
+            //console.log(err);
+            return reject(err)
+        })
+        
+            req.write(postData);
+                req.end();
+               }
+               catch (e) {
+                return reject(new Error('Unknown error connecting to the cloud'))
+               }
+        } else {
+            // No pin code error
+            reject(new Error('No ID code yet'))
+        }
+    });
+    return promise;
+}
 const updateID = (model,firmware) => {
+    if(config.system!==undefined && (config.system.pin===undefined || config.system.pin=="")) {
+        config.system.pin = String(getRandomInt(100000,999999));
+        updateConfig(config);
+    }
     if(os['wlan0']!==undefined) {
         sendID('wlan0',model,firmware)
     } else if(os['eth0']!==undefined) {
@@ -1453,7 +1570,7 @@ function sendID(dev,model,firmware) {
     let mac = os[dev][0].mac.substr(os[dev][0].mac.length - 8)
     let hash = crypto.createHash('md5').update(mac).digest("hex")
     let shortHash = hash.substr(hash.length - 10)
-    if(config.system!==undefined && (config.system.id===undefined || config.system.id===0)) {
+    if(config.system!==undefined && (config.system.id===undefined || config.system.id===0 || config.system.id!==shortHash)) {
         config.system.id = shortHash;
         updateConfig(config);
     }
@@ -1503,6 +1620,21 @@ req.on("error", (err) => {
         console.log('Error in presentation')
        }
 }
+function encrypt(key,text) {
+    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return { iv: iv.toString('hex'), encryptedData: encrypted.toString('hex') };
+   }
+   
+   function decrypt(key,text) {
+    let iv = Buffer.from(text.iv, 'hex');
+    let encryptedText = Buffer.from(text.encryptedData, 'hex');
+    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(key), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+   }
 module.exports = {
     reqData:reqData,
     setData:setData,
@@ -1524,5 +1656,6 @@ module.exports = {
     saveGraph:saveGraph,
     requireGraph:requireGraph,
     setDocker:setDocker,
-    refreshConfig:refreshConfig
+    refreshConfig:refreshConfig,
+    sendText:sendText
 }
