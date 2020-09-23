@@ -393,6 +393,8 @@ const announcment = (msg,cb) => {
         firmware = (data[6]*256)+data[7];
         if(model[0]=="VVM" || model[0]=="SMO") {
             model[0] = model[0]+model[1];
+        } else if(model[0]=="Freedom") {
+            model[0] = model[1].replace('-','')+model[2];
         }
         model = model[0].split("-");
         model = model[0];
