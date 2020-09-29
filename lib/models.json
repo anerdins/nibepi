@@ -21,5 +21,6 @@
     "RMU40_S2":"./models/RMU40_S2.json",
     "RMU40_S3":"./models/RMU40_S3.json",
     "RMU40_S4":"./models/RMU40_S4.json",
+    "VVMS320":"./models/VVMS320.json",
     "S1255":"./models/S1255.json"
 }
