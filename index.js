@@ -337,7 +337,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                         core.on('message', (m) => {
                             if(m.type=="started") {
                                 let data = m.data;
-                                if(config.tcp!==undefined && config.tcp.pump!==undefined) {
+                                if(config.tcp!==undefined && config.tcp.pump!==undefined && pumpModel[config.tcp.pump]!==undefined) {
                                     let reg = require(pumpModel[config.tcp.pump]);
                                     if(reg!==undefined) {
                                         for (i = 0; i < reg.length; i = i + 1) {
@@ -403,7 +403,7 @@ const announcment = (msg,cb) => {
         config.system.firmware = firmware;
         callback(null);
         }
-    if(model=="" && config.system.pump!==undefined && config.system.pump!=="" && config.system.firmware!==undefined && config.system.firmware!=="") {
+    if(model=="" && config.system.pump!==undefined && config.system.pump!=="" && config.system.firmware!==undefined && config.system.firmware!=="" && pumpModel[model]!==undefined) {
         model = config.system.pump;
         firmware = config.system.firmware;
         let reg = require(pumpModel[model]);
@@ -442,22 +442,25 @@ const announcment = (msg,cb) => {
         if(model=="") {
             checkPump(msg.data, function(err) { 
                 if(err) throw err;
-                let reg = require(pumpModel[model]);
-                for (i = 0; i < reg.length; i = i + 1) {
-                    let found = false;
-                    for (j = 0; j < register.length; j = j + 1) {
-                        if(register[j].register===reg[i].register) {
-                            found = true;
+                if(pumpModel[model]!==undefined) {
+                    let reg = require(pumpModel[model]);
+                    for (i = 0; i < reg.length; i = i + 1) {
+                        let found = false;
+                        for (j = 0; j < register.length; j = j + 1) {
+                            if(register[j].register===reg[i].register) {
+                                found = true;
+                            }
+                        }
+                        if(found===false) {
+                            register.push(reg[i])
                         }
                     }
-                    if(found===false) {
-                        register.push(reg[i])
-                    }
+                    cb(null,true)
+                    console.log(`Nibe ${model} connected`);
+                    console.log(`Firmware ${firmware}`);
+                    console.log(`Register is set. Length: ${register.length}`)
                 }
-                cb(null,true)
-                console.log(`Nibe ${model} connected`);
-                console.log(`Firmware ${firmware}`);
-                console.log(`Register is set. Length: ${register.length}`)
+                
             });
         } else {
             // Check if ping update to Anerdin cloud should occur
