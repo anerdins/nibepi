@@ -6,9 +6,12 @@ RUN mkdir -p /etc/nibepi
 RUN chown -R node:node /usr/app
 RUN chown -R node:node /etc/nibepi
 
-COPY nibepi/package*.json /usr/app/src
-WORKDIR /usr/app
+#COPY nibepi/package*.json /usr/app/src
+WORKDIR /usr/app/src
 USER node
+RUN git init .
+RUN git remote add origin https://github.com/anerdins/nibepi.git
+RUN git pull origin snapshot
 RUN cd src && npm install -only=production
 USER root
 RUN apt-get remove --purge -y \
@@ -57,6 +60,6 @@ xz-utils \
 zlib1g-dev && \
 rm -rf /var/lib/apt/lists/*
 USER node
-COPY nibepi /usr/app/src
+#COPY nibepi /usr/app/src
 
 CMD [ "node", "./src/server.js" ]
