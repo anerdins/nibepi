@@ -5,7 +5,7 @@ services:
     build: .
 #    image: anerdins/nibepi-base
     volumes:
-       - /home/pi/nibepi/config:/etc/nibepi
+       - /home/fredrik/nibepi-base:/etc/nibepi
        - "/etc/localtime:/etc/localtime:ro"
        - "/etc/timezone:/etc/timezone:ro"
     network_mode: "host"

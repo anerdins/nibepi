@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:12.18.4
 
 # Copy source to container
 RUN mkdir -p /usr/app/src
@@ -6,10 +6,13 @@ RUN mkdir -p /etc/nibepi
 RUN chown -R node:node /usr/app
 RUN chown -R node:node /etc/nibepi
 
-COPY nibepi/package*.json /usr/app/src
-WORKDIR /usr/app
+#COPY nibepi/package*.json /usr/app/src
+WORKDIR /usr/app/src
 USER node
-RUN cd src && npm install -only=production
+RUN git init .
+RUN git remote add origin https://github.com/anerdins/nibepi.git
+RUN git pull origin docker
+RUN npm install -only=production
 USER root
 RUN apt-get remove --purge -y \
 bzr \
@@ -57,6 +60,6 @@ xz-utils \
 zlib1g-dev && \
 rm -rf /var/lib/apt/lists/*
 USER node
-COPY nibepi /usr/app/src
+#COPY nibepi /usr/app/src
 
-CMD [ "node", "./src/server.js" ]
+CMD [ "node", "./server.js" ]

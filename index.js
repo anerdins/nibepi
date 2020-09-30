@@ -398,7 +398,7 @@ const announcment = (msg,cb) => {
         }
         model = model[0].split("-");
         model = model[0];
-	model = model.replace(",","");
+	    model = model.replace(",","");
         config.system.pump = model;
         config.system.firmware = firmware;
         callback(null);
