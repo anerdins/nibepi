@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:12.18.4
 
 # Copy source to container
 RUN mkdir -p /usr/app/src
@@ -11,8 +11,8 @@ WORKDIR /usr/app/src
 USER node
 RUN git init .
 RUN git remote add origin https://github.com/anerdins/nibepi.git
-RUN git pull origin snapshot
-RUN cd src && npm install -only=production
+RUN git pull origin docker
+RUN npm install -only=production
 USER root
 RUN apt-get remove --purge -y \
 bzr \
@@ -62,4 +62,4 @@ rm -rf /var/lib/apt/lists/*
 USER node
 #COPY nibepi /usr/app/src
 
-CMD [ "node", "./src/server.js" ]
+CMD [ "node", "./server.js" ]

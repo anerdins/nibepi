@@ -12,6 +12,10 @@ process.on('exit', function(code) {
   });
   console.log('Waiting for the core to initiate...')
     let config = nibe.getConfig();
+    if(config.system===undefined) {
+        config.system = {};
+        nibe.setConfig(config);
+    }
     if(config.system.readonly!==false) {
         config.system.readonly=false
         nibe.setConfig(config);
