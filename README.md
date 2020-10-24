@@ -1,7 +1,7 @@
 # nibepi
 <i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br>
 
-<b>Stöd mig via Patreon, få tillgång till Discord chatt och livestreaming via Patreon. Allt inom hemautomation, guider, mm.
+<b>Stöd mig via Patreon, få tillgång till Discord chatt och livestreaming via Discord. Allt inom hemautomation, guider, mm.<br>
 Mer information på https://www.patreon.com/anerdins</b>
 
 Följ projektet på Facebook. https://www.facebook.com/groups/nibepi/
