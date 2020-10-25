@@ -65,7 +65,18 @@ process.on('exit', function(code) {
                 process.exit(-1);
             }
         } else if(config.connection.enable=="tcp") {
-            
+            if(config.tcp.host!==undefined && config.tcp.host!=="" && config.tcp.port!==undefined && config.tcp.port!=="") {
+                nibe.initiateCore(config.tcp.host,config.tcp.port, (err,core)=> {
+                    if(err) {
+                        console.log(err);
+                        return process.exit(-3);
+                    } else {
+                        console.log('Core is started');
+                    }
+                })
+            } else {
+                process.exit(-1);
+            }
         }
     }
     if(config.mqtt!==undefined) {
