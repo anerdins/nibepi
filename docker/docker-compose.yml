@@ -2,8 +2,8 @@ version: '3'
 services:
   nibepi:
     container_name: "nibepi"
-    build: .
-#    image: anerdins/nibepi-base
+#    build: .
+    image: anerdins/nibepi-base:snapshot
     volumes:
        - /home/fredrik/nibepi-base:/etc/nibepi
        - "/etc/localtime:/etc/localtime:ro"
