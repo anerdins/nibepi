@@ -11,7 +11,6 @@ WORKDIR /usr/app
 USER node
 RUN cd src && npm install -only=production
 USER root
-RUN usermod -a -G dialout node
 RUN apt-get remove --purge -y \
 bzr \
 git \
@@ -59,5 +58,8 @@ zlib1g-dev && \
 rm -rf /var/lib/apt/lists/*
 USER node
 COPY nibepi /usr/app/src
+USER root
+RUN usermod -a -G dialout node
+USER node
 
 CMD [ "node", "./src/server.js" ]
