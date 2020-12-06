@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:12
 
 # Copy source to container
 RUN mkdir -p /usr/app/src
