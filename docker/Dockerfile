@@ -11,6 +11,7 @@ WORKDIR /usr/app
 USER node
 RUN cd src && npm install -only=production
 USER root
+usermod -a -G dialout node
 RUN apt-get remove --purge -y \
 bzr \
 git \
