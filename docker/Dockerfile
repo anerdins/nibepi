@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:12
 
 # Copy source to container
 RUN mkdir -p /usr/app/src
@@ -58,5 +58,8 @@ zlib1g-dev && \
 rm -rf /var/lib/apt/lists/*
 USER node
 COPY nibepi /usr/app/src
+USER root
+RUN usermod -a -G dialout node
+USER node
 
 CMD [ "node", "./src/server.js" ]
