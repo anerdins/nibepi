@@ -28,8 +28,8 @@ RS485 HAT:<br>
 https://thepihut.com/products/rs485-pizero?variant=26469099976<br>
 https://www.kiwi-electronics.nl/rs-485-pi<br>
 https://www.abelectronics.co.uk/p/77/rs485-pi<br>
-https://www.m.nu/utbyggnadskort/wide-input-shim-kit<br>
 12V HAT:<br>
+https://www.m.nu/utbyggnadskort/wide-input-shim-kit<br>
 https://thepihut.com/products/wide-input-shim<br>
 https://www.kiwi-electronics.nl/wide-input-shim<br>
 https://www.electrokit.com/produkt/wide-input-shim-3-16v/<br>
