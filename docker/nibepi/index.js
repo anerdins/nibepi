@@ -1184,15 +1184,16 @@ function startMQTT(host,port,user,pass) {
         resolve(mqtt_client);
     });
     mqtt_client.on('close',function(){
-        nibeEmit.emit('fault',{from:"MQTT",message:'MQTT Brokern är frånkopplad'});
-        console.log("MQTT Broker is disconnected.")
-        reject(mqtt_client);
-      })
-      mqtt_client.on('error',function(){
+        if (mqtt_client.reconnecting === false) {
+            nibeEmit.emit('fault',{from:"MQTT",message:'MQTT Brokern är frånkopplad'});
+        }
+        console.log("MQTT Broker is disconnected")
+    });
+    mqtt_client.on('error',function(error){
         nibeEmit.emit('fault',{from:"MQTT",message:'Kunde inte ansluta till MQTT Brokern'});
         console.log("Could not connect to MQTT broker")
         reject(mqtt_client);
-      })
+    });
 })
 }
 //
@@ -1264,15 +1265,14 @@ function formatMQTTdiscovery(data) {
     return promise;
 }
 const handleMQTT = (on,host,port,user,pass,cb) => {
+    console.log('handleMQTT: on=' + on + " host=" + host)
     if(on===undefined || on=="" || on=="false" || on===false) {
-        if(mqtt_client!==undefined && mqtt_client.connected===true) {
+        startingMQTT = false;
+        if(mqtt_client!==undefined) {
             mqtt_client.end();
             console.log('Terminated MQTT session, shutdown');
-            return cb(null,false)
-        } else {
-            return cb(null,false)
         }
-        
+        return cb(null,false)
     };
     if(host===undefined || host=="") return cb(err = new Error('No MQTT host defined'));
     if(port===undefined || port=="") return cb(err = new Error('No MQTT port defined'));
@@ -1328,6 +1328,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
         if(mqtt_client!==undefined) {
             mqtt_client.end();
         }
+        startingMQTT = false;
         console.log('Terminated MQTT session');
         return cb(null,false)
     }));
