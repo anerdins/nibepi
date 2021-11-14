@@ -1,9 +1,6 @@
 # nibepi
 <i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br>
 
-<b>Stöd mig via Patreon, få tillgång till Discord chatt och livestreaming via Discord. Allt inom hemautomation, guider, mm.<br>
-Mer information på https://www.patreon.com/anerdins</b>
-
 Följ projektet på Facebook. https://www.facebook.com/groups/nibepi/
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi-pic.jpg)
 NibePi är en IoT produkt för din Nibe värmepump.
