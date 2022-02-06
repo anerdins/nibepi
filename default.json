@@ -45,5 +45,9 @@
     "fan": {
         "co2_limit":800,
         "low_cpr_freq":40
+    },
+    "plejd": {
+        "host":"127.0.0.1",
+        "port":"1883"
     }
 }
