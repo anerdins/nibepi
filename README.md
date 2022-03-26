@@ -1,9 +1,7 @@
 # nibepi
-<i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br>
-
-<b>Stöd mig via Patreon, få tillgång till Discord chatt och livestreaming via Discord. Allt inom hemautomation, guider, mm.<br>
-Mer information på https://www.patreon.com/anerdins</b>
-
+<i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br><br>
+<b>OBS. Ny imagefil som kör Raspberry Pi Bullseye</b><br>
+http://anerdins.se/NibePi/nibepi_1.1.1.rar<br>
 Följ projektet på Facebook. https://www.facebook.com/groups/nibepi/
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi-pic.jpg)
 NibePi är en IoT produkt för din Nibe värmepump.
@@ -42,7 +40,8 @@ Ladda ner en fullständig image fil att skriva till ett 16GB SD kort.<br>
 http://anerdins.se/NibePi/nibepi_1.0.rar (1.0.0)<br>
 http://anerdins.se/NibePi/nibepi_1.0.3.rar (1.0.3)<br>
 http://anerdins.se/NibePi/nibepi_1.0.6.rar (1.0.6)<br>
-http://anerdins.se/NibePi/nibepi_1.1.rar (1.1)<br>
+http://anerdins.se/NibePi/nibepi_1.1.1.rar (1.1)<br>
+(OBS Högerklicka "Spara länk som")<br>
 eller<br>
 https://1drv.ms/u/s!AijwO0Pec8KrhOJ5iVjv2AQB1HEWjw?e=Nlw2Mx (1.0.0)<br>
 https://1drv.ms/u/s!AijwO0Pec8KrhOQjladTxa9XekBBEA?e=EDWucy (1.0.3)<br>
