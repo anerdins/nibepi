@@ -1,12 +1,34 @@
 {
+  "_from": "github:anerdins/nibepi#master",
+  "_id": "nibepi@1.1.1",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/nibepi",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "nibepi@github:anerdins/nibepi#master",
+    "name": "nibepi",
+    "escapedName": "nibepi",
+    "rawSpec": "github:anerdins/nibepi#master",
+    "saveSpec": "github:anerdins/nibepi#master",
+    "fetchSpec": null,
+    "gitCommittish": "master"
+  },
+  "_requiredBy": [
+    "/node-red-contrib-nibepi"
+  ],
+  "_resolved": "github:anerdins/nibepi#5de721fc27eaf395475b1cb9ae40833f7b3c163b",
+  "_spec": "nibepi@github:anerdins/nibepi#master",
+  "_where": "/home/pi/.node-red/node_modules/node-red-contrib-nibepi",
   "author": {
     "name": "Fredrik Anerdin"
   },
   "bundleDependencies": false,
   "dependencies": {
-    "mqtt": "^3.0.0",
-    "serialport": "^7.1.5",
-    "modbus-serial":"8.0.0"
+    "modbus-serial": "8.0.0",
+    "mqtt": "~4.3.4",
+    "serialport": "^7.1.5"
   },
   "deprecated": false,
   "description": "RS485 connection to a Nibe Heatpump with full communication supports",

@@ -1,19 +1,27 @@
 {
-    "version":"1.1",
+    "version":"1.2",
     "registers":[],
     "connection": {
         "enable":"serial",
         "series":"fSeries"
     },
+    "tcp":{
+        "pump":"",
+        "host":"",
+        "port":""
+    },
     "serial":{
         "port":"/dev/ttyAMA0"
+    },
+    "update":{
+        "version":"1.2"
     },
     "home": {
         "adjust_s1":0,
         "adjust_s2":0
     },
     "mqtt": {
-        "enable":false,
+        "enable":true,
         "host":"127.0.0.1",
         "port":"1883",
         "user":"",
@@ -34,9 +42,11 @@
         "info": false,
         "core": false,
         "debug": false,
-        "error": true
+        "error": true,
+        "price":false
     },
     "indoor": {
+        "enable_s1": false,
         "dm_reset_enable":false,
         "dm_reset_enable_stop":false,
         "dm_reset_stop_diff":0.7,
@@ -49,5 +59,51 @@
     "plejd": {
         "host":"127.0.0.1",
         "port":"1883"
-    }
+    },
+    "price":{
+        "enable": false,
+        "source": "priceai",
+        "time": 8,
+        "time_hw": 12,
+        "min_spread": 20,
+        "area": "SE3",
+        "token": "",
+        "hw_speed": 20,
+        "temp_low_s1": 0,
+        "pool_enable_s1": false,
+        "VERY_CHEAP_POOL_HEAT": 0,
+        "CHEAP_POOL_HEAT": 0,
+        "NORMAL_START_POOL_HEAT": 28,
+        "NORMAL_STOP_POOL_HEAT": 32,
+        "EXPENSIVE_POOL_HEAT": 0,
+        "VERY_EXPENSIVE_POOL_HEAT": 0,
+        "VERY_CHEAP_POOL_CPR": 0,
+        "CHEAP_POOL_CPR": 0,
+        "NORMAL_START_POOL_CPR": 0,
+        "NORMAL_STOP_POOL_CPR": 0,
+        "EXPENSIVE_POOL_CPR": 0,
+        "VERY_EXPENSIVE_POOL_CPR": 0,
+        "hotwater_very_expensive": "0",
+        "hotwater_expensive": "0",
+        "hotwater_normal": "0",
+        "hotwater_cheap": "1",
+        "hotwater_very_cheap": "2",
+        "enable_heat_s1": false,
+        "enable_heat_s2": false,
+        "hotwater_enable": false,
+        "heat_very_expensive_s1": -4,
+        "heat_expensive_s1": -3,
+        "heat_cheap_s1": 2,
+        "ratio": 3,
+        "tibber_home": 0
+    },"weather": {
+        "enable_s1": false,
+        "enable_down": true,
+        "clear": 5,
+        "sun_enable": false,
+        "mostly_clear": 3,
+        "half_clear": 1,
+        "enable_up": true,
+        "forecast_adjust": false
+      }
 }

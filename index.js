@@ -46,7 +46,6 @@ let mqttDiscoverySensors = [];
 let red = false;
 let config;
 const regQueue = [];
-var pumpModel = require(__dirname+'/lib/models.json')
 const EventEmitter = require('events').EventEmitter
 const nibeEmit = new EventEmitter();
 const fs = require('fs');
@@ -330,7 +329,7 @@ if(config.connection!==undefined && config.connection.series!==undefined) {
                             if(m.type=="started") {
                                 let data = m.data;
                                 if(config.tcp!==undefined && config.tcp.pump!==undefined) {
-                                    let reg = require(pumpModel[config.tcp.pump]);
+                                    let reg = require(`./models/${config.tcp.pump}.json`);
                                     if(reg!==undefined) {
                                         for (i = 0; i < reg.length; i = i + 1) {
                                             let found = false;
@@ -383,7 +382,7 @@ const announcment = (msg,cb) => {
         let modelLength = data[4]+5;
         model = (Buffer.from(data).slice(8,modelLength).toString()).split(" ");
         firmware = (data[6]*256)+data[7];
-        if(model[0]=="VVM" || model[0]=="SMO") {
+        if(model[0]=="VVM" || model[0]=="SMO" || model[0]=="Tehowatti") {
             model[0] = model[0]+model[1];
         }
         model = model[0].split("-");
@@ -396,23 +395,29 @@ const announcment = (msg,cb) => {
     if(model=="" && config.system.pump!==undefined && config.system.pump!=="" && config.system.firmware!==undefined && config.system.firmware!=="") {
         model = config.system.pump;
         firmware = config.system.firmware;
-        let reg = require(pumpModel[model]);
-        for (i = 0; i < reg.length; i = i + 1) {
-            let found = false;
-            for (j = 0; j < register.length; j = j + 1) {
-                if(register[j].register===reg[i].register) {
-                    found = true;
+        try {
+            let reg = require(`./models/${model}.json`);
+            for (i = 0; i < reg.length; i = i + 1) {
+                let found = false;
+                for (j = 0; j < register.length; j = j + 1) {
+                    if(register[j].register===reg[i].register) {
+                        found = true;
+                    }
+                }
+                if(found===false) {
+                    register.push(reg[i])
                 }
             }
-            if(found===false) {
-                register.push(reg[i])
-            }
+            cb(null,true)
+            console.log(`Nibe ${model} connected`);
+            console.log(`Firmware ${firmware}`);
+            console.log(`Register is set. Length: ${register.length}`)
+            updateID(model,firmware);
+        } catch(err) {
+            updateID(model,firmware);
+            console.log(`Heatpump is not supported ${model}`)
         }
-        cb(null,true)
-        console.log(`Nibe ${model} connected`);
-        console.log(`Firmware ${firmware}`);
-        console.log(`Register is set. Length: ${register.length}`)
-        updateID(model,firmware);
+        
     } else if(msg.data[3]==109) {
         
         let index = register.findIndex(i => i.register == 45001);
@@ -432,7 +437,7 @@ const announcment = (msg,cb) => {
         if(model=="") {
             checkPump(msg.data, function(err) { 
                 if(err) throw err;
-                let reg = require(pumpModel[model]);
+                let reg = require(`./models/${model}.json`);
                 for (i = 0; i < reg.length; i = i + 1) {
                     let found = false;
                     for (j = 0; j < register.length; j = j + 1) {
@@ -445,7 +450,7 @@ const announcment = (msg,cb) => {
                     }
                 }
                 cb(null,true)
-                console.log(`Nibe ${model} connected`);
+                console.log(`${model} connected`);
                 console.log(`Firmware ${firmware}`);
                 console.log(`Register is set. Length: ${register.length}`)
             });
@@ -460,7 +465,7 @@ const announcment = (msg,cb) => {
         //log('info',msg.data)
         if(rmu['s'+((-24)+msg.data[2])]===undefined || rmu['s'+((-24)+msg.data[2])]===false) {
             rmu['s'+((-24)+msg.data[2])] = true;
-            let reg = require(pumpModel['RMU40_S'+((-24)+msg.data[2])]);
+            let reg = require(`./models/RMU40_S${((-24)+msg.data[2])}`);
             for (i = 0; i < reg.length; i = i + 1) {
                 if(msg.rmu===true) { reg[i].mode = "R"; }
                 let found = false;
@@ -572,8 +577,8 @@ async function reqData (address) {
                 if(model.length!==0) {
                     getDataFseries(address).then(result => {
                         resolve(result)
-                    },(error => {
-                        reject(error)
+                    }).catch((err => {
+                        reject(err)
                     }));
                 } else {
                     reject(new Error('Heatpump is not ready yet.'))
@@ -581,10 +586,10 @@ async function reqData (address) {
             } else if(config.connection.series=="sSeries") {
                 getDataSseries(address).then(result => {
                     resolve(result)
-                },(error => {
+                }).catch((error => {
                     reject(error)
                 })).catch(err => {
-                    reject(error)
+                    reject(err)
                 });
             }
             
@@ -1170,7 +1175,7 @@ function startMQTT(host,port,user,pass) {
     var mqtt_publish_topic = 'nibe';
     var mqtt_username = user;
     var mqtt_password = pass;
-    var mqtt_client_id = 'nibe_' + Math.random().toString(16).substr(2, 8);
+    var mqtt_client_id = 'nibe_' + Math.random().toString(16);
     // MQTT CLIENT OPTIONS
     var mqtt_Options = {
         port: mqtt_port,
@@ -1182,10 +1187,10 @@ function startMQTT(host,port,user,pass) {
         reconnectPeriod: 5000,
         connectTimeout: 30 * 1000,
         rejectUnauthorized: false,
-        username: mqtt_username, //the username required by your broker, if any
-        password: mqtt_password, //the password required by your broker, if any
         will: { topic: mqtt_publish_topic, payload: mqtt_client_id + ' disconnected', qos: 1, retain: false }
     };
+    if(mqtt_username!==undefined) mqtt_Options.username = mqtt_username
+    if(mqtt_password!==undefined) mqtt_Options.password = mqtt_password
     mqtt_client = mqtt.connect('mqtt://' + mqtt_host, mqtt_Options);
     
     mqtt_client.on('connect', function () {
@@ -1193,16 +1198,17 @@ function startMQTT(host,port,user,pass) {
         console.log("MQTT Broker is connected.")
         resolve(mqtt_client);
     });
-    mqtt_client.on('close',function(){
-        nibeEmit.emit('fault',{from:"MQTT",message:'MQTT Brokern är frånkopplad'});
-        console.log("MQTT Broker is disconnected.")
-        reject(mqtt_client);
-      })
-      mqtt_client.on('error',function(){
+    mqtt_client.on('close',function(err){
+        if (mqtt_client.reconnecting === false) {
+            nibeEmit.emit('fault',{from:"MQTT",message:'MQTT Brokern är frånkopplad'});
+        }
+        console.log("MQTT Broker is disconnected")
+    });
+    mqtt_client.on('error',function(error){
         nibeEmit.emit('fault',{from:"MQTT",message:'Kunde inte ansluta till MQTT Brokern'});
         console.log("Could not connect to MQTT broker")
         reject(mqtt_client);
-      })
+      });
 })
 }
 //
@@ -1275,18 +1281,17 @@ function formatMQTTdiscovery(data) {
 }
 const handleMQTT = (on,host,port,user,pass,cb) => {
     if(on===undefined || on=="" || on=="false" || on===false) {
-        if(mqtt_client!==undefined && mqtt_client.connected===true) {
+        startingMQTT = false;
+        if(mqtt_client!==undefined) {
             mqtt_client.end();
             console.log('Terminated MQTT session, shutdown');
-            return cb(null,false)
-        } else {
-            return cb(null,false)
         }
-        
+        return cb(null,false)
     };
     if(host===undefined || host=="") return cb(err = new Error('No MQTT host defined'));
     if(port===undefined || port=="") return cb(err = new Error('No MQTT port defined'));
     if(mqtt_client===undefined || mqtt_client.connected!==true) {
+        console.log('Startar MQTT')
         if(startingMQTT===false) {
             startingMQTT = true;
     startMQTT(host,port,user,pass).then(result => {
@@ -1317,7 +1322,27 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                 if(subscribed===false && topic.includes(subTopic)) {
                     topic = topic.replace(config.mqtt.topic,'')
                     topic = topic.split('/');
-                    if(topic.includes('set')) {
+                    if(topic[0]=="adjust_s1") {
+                        if(topic.includes('set')) {
+                            if(!isNaN(message)) {
+                                if(config.home!==undefined) config.home.adjust_s1 = message
+                                updateConfig(config);
+                                publishMQTT(config.mqtt.topic+"adjust_s1",config.home.adjust_s1)
+                            }
+                        } else if(topic.includes('get')) {
+                            publishMQTT(config.mqtt.topic+"adjust_s1",config.home.adjust_s1)
+                        }
+                    } else if(topic[0]=="adjust_s2") {
+                        if(topic.includes('set')) {
+                            if(!isNaN(message)) {
+                                if(config.home!==undefined) config.home.adjust_s2 = message
+                                updateConfig(config);
+                                publishMQTT(config.mqtt.topic+"adjust_s2",config.home.adjust_s2)
+                            }
+                        } else if(topic.includes('get')) {
+                            publishMQTT(config.mqtt.topic+"adjust_s2",config.home.adjust_s2)
+                        }
+                    } else if(topic.includes('set')) {
                         setData(topic[0],message,(err,result) => {
                             if(err) return console.log(err);
                         });
@@ -1333,10 +1358,13 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
             });
         }
         cb(null,true);
-    },(reject => {
+    }).catch((reject => {
+        startingMQTT = false
+        console.log(reject)
         if(mqtt_client!==undefined) {
             mqtt_client.end();
         }
+        startingMQTT = false;
         console.log('Terminated MQTT session');
         return cb(null,false)
     }));
@@ -1465,7 +1493,7 @@ function sendID(dev,model,firmware) {
     });
     log(config.log.enable,`Posting following information to Anerdins Cloud: ${postData}, `,config.log['debug'],"Cloud");
     const options = {
-        hostname: 'dev.anerdins.se',
+        hostname: 'nibepi.anerdins.se',
         port: 18081,
         path: '/',
         method: 'POST',
