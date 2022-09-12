@@ -30,7 +30,7 @@ exec(`sudo chrt -a -f -p 99 ${process.pid}`, function(error, stdout, stderr) {
     }
 
 });*/
-const serialport = require('serialport').SerialPort;
+const serialport = require('serialport');
 const nack = [0x15];
 const ack = [0x06];
 var myPort;
