@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-const version = "1.1.0";
+const version = "1.2";
 /*var exec = require('child_process').exec;
 exec(`sudo chrt -a -f -p 99 ${process.pid}`, function(error, stdout, stderr) {
     if(error) {
@@ -30,7 +30,7 @@ exec(`sudo chrt -a -f -p 99 ${process.pid}`, function(error, stdout, stderr) {
     }
 
 });*/
-const serialport = require('serialport');
+const serialport = require('serialport').SerialPort;
 const nack = [0x15];
 const ack = [0x06];
 var myPort;
