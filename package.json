@@ -6,7 +6,7 @@
   "dependencies": {
     "modbus-serial": "8.0.0",
     "mqtt": "~4.3.4",
-    "serialport": "^10.4.0"
+    "serialport": "9.2.8"
   },
   "deprecated": false,
   "description": "RS485 connection to a Nibe Heatpump with full communication supports",
