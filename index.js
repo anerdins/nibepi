@@ -428,9 +428,7 @@ const announcment = (msg,cb) => {
                     console.log('Resetting alarm.')
                     setData(45171,1);
                 }
-            },err => {
-                
-            });
+            }).catch(console.log)
         }
         
         //console.log(`Announcement message`);
@@ -620,7 +618,7 @@ const setData = (address,value,cb=()=>{}) => {
                 core.send({type:"rmuSet",data:output});
             } else {
                 core.send({type:"setData",data:output});
-                reqData(address);
+                reqData(address).catch(console.log)
             }
             
         }
@@ -635,7 +633,7 @@ const setData = (address,value,cb=()=>{}) => {
                         core.send({type:"rmuSet",data:data});
                     } else {
                         core.send({type:"setData",data:data});
-                        reqData(address);
+                        reqData(address).catch(console.log)
                     }
                 }
             }
@@ -906,7 +904,7 @@ const addRegular = (address) => {
             log(config.log.enable,`RMU register not added to regular list, Register: ${address}`,config.log['debug'],"Register");
         } else {
             // Req data change
-            reqData(address);
+            reqData(address).catch(console.log)
             regQueue.push(getData(address));
             log(config.log.enable,`Regular register added (${address})`,config.log['info'],"Register");
             core.send({type:"regRegister",data:regQueue});
@@ -1347,7 +1345,7 @@ const handleMQTT = (on,host,port,user,pass,cb) => {
                             if(err) return console.log(err);
                         });
                     } else if(topic.includes('get')) {
-                        reqData(topic[0]);
+                        reqData(topic[0]).catch(console.log);
                     } else if(topic.includes('add')) {
                         addRegister(topic[0])
                     } else if(topic.includes('remove')) {
