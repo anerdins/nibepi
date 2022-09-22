@@ -1223,7 +1223,7 @@ async function addMQTTdiscovery(data) {
         if(i===-1 && j!==-1) {
             let result = await formatMQTTdiscovery(data)
             let topic = 'homeassistant/'+result.component+'/'+data.register+'/config'
-            let message = JSON.stringify({"name": "Nibe "+data.titel,"device_class":result.type,"state_class":result.state_class,"unit_of_measurement":result.unit,"state_topic":result.topic});
+            let message = JSON.stringify({"name": "Nibe "+data.titel,"unique_id":"nibe_"+data.register,"device":{"manufacturer":"Nibe","model":model,"name":"Nibe "+model,"identifiers":["Nibe "+model]},"device_class":result.type,"state_class":result.state_class,"unit_of_measurement":result.unit,"state_topic":result.topic});
             if(result.component!==undefined) {
                 publishMQTTpromise(topic,message,true).then(result => {
                     log(config.log.enable,`Adding MQTT Discovery object, register ${data.register}`,config.log['info'],"MQTT");
