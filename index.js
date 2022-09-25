@@ -1398,10 +1398,16 @@ return promise;
 const redOn = (enable=true) => {
     core.send({type:"red",data:enable});
 }
-const updateSensors = () => {
-    if(config.home===undefined) config.home = {};
-	if(config.home.inside_sensors===undefined) config.home.inside_sensors = [];
-	updateConfig(config);
+const updateSensors = (config) => {
+    if(config.home===undefined) {
+        config.home = {};
+        updateConfig(config);
+    }
+	if(config.home.inside_sensors===undefined) {
+        config.home.inside_sensors = [];
+        updateConfig(config);
+    }
+	
     for (const arr of config.home.inside_sensors) {
         if(arr.source=="mqtt") {
             let found = false;
@@ -1420,9 +1426,9 @@ const updateSensors = () => {
         }
     }
 }
-const addSensor = (config) => {
-    updateConfig(config);
-    updateSensors();
+const addSensor = (data) => {
+    updateConfig(data);
+    updateSensors(data);
 }
 const removeSensor = (data) => {
     if(config.home.inside_sensors!==undefined) {
