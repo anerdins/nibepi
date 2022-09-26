@@ -1,5 +1,5 @@
 {
-    "version":"1.2",
+    "version":"1.2.1",
     "registers":[],
     "connection": {
         "enable":"serial",
@@ -14,7 +14,7 @@
         "port":"/dev/ttyAMA0"
     },
     "update":{
-        "version":"1.2"
+        "version":"1.2.1"
     },
     "home": {
         "adjust_s1":0,
