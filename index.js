@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 //const path = __dirname;
+const nibepi_version = "1.2.1"
 const Core = require(__dirname+'/lib/startCore')
 const startCore = Core.startCoreF;
 const startCoreS = Core.startCoreS;
@@ -64,7 +65,15 @@ if (!fs.existsSync(path)) {
 
 function requireF(modulePath){ // force require
     try {
-     return require(modulePath);
+        let configFile = require(modulePath);
+        if(configFile!==undefined) {
+            if(configFile.update===undefined) configFile.update = {}
+            if(configFile.update.version!==nibepi_version) {
+                configFile.update.version = nibepi_version
+                updateConfig(configFile)
+            }
+        }
+        return configFile
     }
     catch (e) {
         console.log('Config file not found, loading default.');
