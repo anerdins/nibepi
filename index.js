@@ -65,15 +65,7 @@ if (!fs.existsSync(path)) {
 
 function requireF(modulePath){ // force require
     try {
-        let configFile = require(modulePath);
-        if(configFile!==undefined) {
-            if(configFile.update===undefined) configFile.update = {}
-            if(configFile.update.version!==nibepi_version) {
-                configFile.update.version = nibepi_version
-                updateConfig(configFile)
-            }
-        }
-        return configFile
+     return require(modulePath);
     }
     catch (e) {
         console.log('Config file not found, loading default.');
@@ -149,6 +141,10 @@ const saveGraph = (data) => {
 let startingMQTT = false;
 const updateConfig = (data) => {
     config = data;
+    if(config.update===undefined) config.update = {}
+    if(config.update.version!==nibepi_version) {
+        config.update.version = nibepi_version
+    }
         handleMQTT(config.mqtt.enable,config.mqtt.host,config.mqtt.port,config.mqtt.user,config.mqtt.pass, (err,result) => {
             if(err) {
                 return console.log(err);
