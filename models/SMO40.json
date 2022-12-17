@@ -1325,5 +1325,11 @@
 {"register":"49379","factor":"1","size":"u8","mode":"R/W","titel":"External ERS 4 accessory bypass at heat","info":"","unit":"","min":"0","max":"1"},
 {"register":"49380","factor":"1","size":"u8","mode":"R/W","titel":"External ERS 3 accessory bypass at heat","info":"","unit":"","min":"0","max":"1"},
 {"register":"49381","factor":"1","size":"u8","mode":"R/W","titel":"External ERS 2 accessory bypass at heat","info":"","unit":"","min":"0","max":"1"},
-{"register":"49430","factor":"1","size":"u8","mode":"R/W","titel":"AUX ERS Fire Place Guard","info":"Activates ERS Fire Place Guard","unit":"","min":"0","max":"0"}
+{"register":"49430","factor":"1","size":"u8","mode":"R/W","titel":"AUX ERS Fire Place Guard","info":"Activates ERS Fire Place Guard","unit":"","min":"0","max":"0"},
+{"register":"48659","factor":1,"size":"s8","mode":"R/W","titel":"Cut off frequency activated 2","info":"Cut off frequency activated","unit":"","min":"0","max":"1"},
+{"register":"48660","factor":1,"size":"s8","mode":"R/W","titel":"Cut off frequency activated 1","info":"Cut off frequency activated","unit":"","min":"0","max":"1"},
+{"register":"48661","factor":1,"size":"u8","mode":"R/W","titel":"Cut off frequency start 2","info":"Cut off frequency start","unit":"Hz","min":"17","max":"115"},
+{"register":"48662","factor":1,"size":"u8","mode":"R/W","titel":"Cut off frequency start 1","info":"Cut off frequency start","unit":"Hz","min":"17","max":"115"},
+{"register":"48663","factor":1,"size":"u8","mode":"R/W","titel":"Cut off frequency stop 2","info":"Cut off frequency stop","unit":"Hz","min":"22","max":"120"},
+{"register":"48664","factor":1,"size":"u8","mode":"R/W","titel":"Cut off frequency stop 1","info":"Cut off frequency stop","unit":"Hz","min":"22","max":"120"}
 ]
