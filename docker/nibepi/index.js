@@ -1248,7 +1248,7 @@ function formatMQTTdiscovery(data) {
         if(result.unit=="°C") {
             result.type = "temperature";
         } else if(result.unit=="A") {
-            result.type = "power";
+            result.type = "current";
         } else if(result.unit=="kW") {
             result.type = "power";
         } else if(result.unit=="Hz" || result.unit=="%") {
