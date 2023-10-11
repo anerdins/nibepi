@@ -1,7 +1,7 @@
 # nibepi
 <i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br><br>
 <b>OBS. Ny imagefil som kör Raspberry Pi Bullseye och är förberedd att köras på alla Raspberry Pi. Inkl 4.</b><br>
-https://anerdins.se/NibePi/nibepi_1.2_rpi4_ready.img<br>
+https://anerdins-iot.se/files/nibepi.img<br>
 Följ projektet på Facebook. https://www.facebook.com/groups/nibepi/
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi-pic.jpg)
 NibePi är en IoT produkt för din Nibe värmepump.
