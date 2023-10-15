@@ -1,17 +1,12 @@
 # nibepi
 <i>README in other languages: [English](https://github.com/anerdins/nibepi/blob/master/README.en.md)</i><br><br>
-<b>OBS. Ny imagefil som kör Raspberry Pi Bullseye och är förberedd att köras på alla Raspberry Pi. Inkl 4.</b><br>
-https://anerdins-iot.se/files/nibepi.img<br>
-Följ projektet på Facebook. https://www.facebook.com/groups/nibepi/
+
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi-pic.jpg)
 NibePi är en IoT produkt för din Nibe värmepump.
 Med en Raspberry Pi Zero+RS485 HAT så kommunicerar NibePi med pumpen via Modbus. NibePi får plats innanför skalet på Värmepumpen och matas direkt från kretskortet i pumpen. NibePi stödjer Nibe F370,F470,F730,F750,F1145,F1245,F1155,F1255,VVM225,310,320,325,500.SMO40<br>
 Grunden i automatisering och styrning av pumpen är baserad på NodeJS och Node-RED. Det finns även möjligheter att kunna redigera fritt.<br>
 
 En viktig aspekt i hela projektet är att det måste vara en driftsäker lösning. Sönderskrivna SD-kort bör inte kunna hända på en NibePi eftersom att systemet körs i read-only. Detta gör den väldigt driftsäker.<br>
-
-Om du uppskattar mitt arbete så kan du bjuda mig på lite kaffe på nedanstående länk.
-https://www.buymeacoffee.com/0oKFXbQ
 
 Fler funktioner kommer att byggas till och optimeras löpande. Det går även att uppdatera NibePi direkt via webinterfacet för att få tillgång till de senaste funktionerna.<br>
 I webinterfacet finns information samt möjligheter för att starta om hårdvara eller mjukvara.
@@ -37,15 +32,9 @@ https://www.clasohlson.com/se/MicroSDHC-SDXC-minneskort-Klass-10,-Kingston/38-55
 Löd på anslutningskontakter på A och B på RS485 kortet. Stacka sedan ihop alla kort, antingen med headers eller löd dom rätt på varandra för minsta möjliga bygghöjd.<br>
 
 Ladda ner en fullständig image fil att skriva till ett 16GB SD kort.<br>
-http://anerdins.se/NibePi/nibepi_1.0.rar (1.0.0)<br>
-http://anerdins.se/NibePi/nibepi_1.0.3.rar (1.0.3)<br>
-http://anerdins.se/NibePi/nibepi_1.0.6.rar (1.0.6)<br>
-http://anerdins.se/NibePi/nibepi_1.1.1.rar (1.1)<br>
-(OBS Högerklicka "Spara länk som")<br>
-eller<br>
-https://1drv.ms/u/s!AijwO0Pec8KrhOJ5iVjv2AQB1HEWjw?e=Nlw2Mx (1.0.0)<br>
-https://1drv.ms/u/s!AijwO0Pec8KrhOQjladTxa9XekBBEA?e=EDWucy (1.0.3)<br>
-https://1drv.ms/u/s!AijwO0Pec8KrhOdHHS72ELrcG3r3ww?e=BMRGwg (1.0.6<br>
+Kolla in den officiella sidan
+https://energy.anerdins-iot.se<br>
+
 På boot partionen (som även är tillgänglig i windows) ligger det en fil som heter wpa_supplicant.conf Där skriver du in dina wifi uppgifter.
 ```
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
