@@ -376,7 +376,7 @@
     {"register":"43180","factor":1,"size":"u8","mode":"R","titel":"HWC Pump Status GP11","info":"Hot water circulation pump status. 1=on, 0=off","unit":"","min":"0","max":"0"},
     {"register":"43182","factor":1,"size":"u16","mode":"R","titel":"Compressor Frequency, Target","info":"The targeted compressor frequency, before excluding any blocked frequencies","unit":"Hz","min":"0","max":"0"},
     {"register":"43239","factor":10,"size":"s32","mode":"R","titel":"Tot. HW op.time add.","info":"Total electric additive operation time in hot water mode","unit":"h","min":"0","max":"9999999"},
-    {"register":"43375","factor":1,"size":"s16","mode":"R","titel":"compr. in power mean","info":"Mean power delivered from the inverter to the compressor. Mean is calculated every 10 seconds.","unit":"W","min":"0","max":"0"},
+    {"register":"43375","factor":10,"size":"s16","mode":"R","titel":"compr. in power mean","info":"Mean power delivered from the inverter to the compressor. Mean is calculated every 10 seconds.","unit":"W","min":"0","max":"0"},
     {"register":"43395","factor":1,"size":"u8","mode":"R","titel":"HPAC Relays","info":"Indicates the active relays on the HPAC accessory. The information is binary encoded","unit":"","min":"0","max":"0"},
     {"register":"43416","factor":1,"size":"s32","mode":"R","titel":"Compressor starts EB100-EP14","info":"Number of compressorer starts","unit":"","min":"0","max":"9999999"},
     {"register":"43420","factor":1,"size":"s32","mode":"R","titel":"Tot. op.time compr. EB100-EP14","info":"Total compressorer operation time","unit":"h","min":"0","max":"9999999"},

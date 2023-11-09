@@ -306,7 +306,7 @@
     {"register":"43305","factor":100,"size":"u32","mode":"R","titel":"Compr. energy HW","info":"Compressor energy during hot water production in kWh","unit":"kWh","min":"0","max":"9999999"},
     {"register":"43371","factor":1,"size":"u8","mode":"R","titel":"Hot gas limit status","info":"","unit":"","min":"0","max":"0"},
     {"register":"43372","factor":1,"size":"u8","mode":"R","titel":"Evaporater limit status","info":"","unit":"","min":"0","max":"0"},
-    {"register":"43375","factor":1,"size":"s16","mode":"R","titel":"compr. in power mean","info":"Mean power delivered from the inverter to the compressor. Mean is calculated every 10 seconds.","unit":"W","min":"0","max":"0"},
+    {"register":"43375","factor":10,"size":"s16","mode":"R","titel":"compr. in power mean","info":"Mean power delivered from the inverter to the compressor. Mean is calculated every 10 seconds.","unit":"W","min":"0","max":"0"},
     {"register":"43382","factor":1,"size":"u16","mode":"R","titel":"Inverter mem error code","info":"","unit":"","min":"0","max":"0"},
     {"register":"43416","factor":1,"size":"s32","mode":"R","titel":"Compressor starts EB100-EP14","info":"Number of compressorer starts","unit":"","min":"0","max":"9999999"},
     {"register":"43420","factor":1,"size":"s32","mode":"R","titel":"Tot. op.time compr. EB100-EP14","info":"Total compressorer operation time","unit":"h","min":"0","max":"9999999"},
