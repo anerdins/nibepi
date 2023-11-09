@@ -292,7 +292,7 @@
     {"register":"43132","factor":1,"size":"u16","mode":"R","titel":"Inverter com. timer","info":"This value shows the time since last communication with the inverter","unit":"sec","min":"0","max":"0"},
     {"register":"43136","factor":10,"size":"u16","mode":"R","titel":"Compressor Frequency, Actual","info":"The compressor frequency the compressor is currently running at","unit":"Hz","min":"0","max":"0"},
     {"register":"43140","factor":10,"size":"s16","mode":"R","titel":"Inverter Temperature","info":"Current inverter temparture","unit":"°C","min":"0","max":"0"},
-    {"register":"43141","factor":1,"size":"u16","mode":"R","titel":"compr. in power","info":"The power delivered from the inverter to the compressor","unit":"W","min":"0","max":"0"},
+    {"register":"43141","factor":10,"size":"u16","mode":"R","titel":"compr. in power","info":"The power delivered from the inverter to the compressor","unit":"W","min":"0","max":"0"},
     {"register":"43144","factor":100,"size":"u32","mode":"R","titel":"Compr. energy total","info":"Total compressor energy in kWh","unit":"kWh","min":"0","max":"9999999"},
     {"register":"43147","factor":1,"size":"s16","mode":"R","titel":"Compr. in current","info":"The current delivered from the inverter to the compressor","unit":"A","min":"0","max":"0"},
     {"register":"43158","factor":1,"size":"u8","mode":"R","titel":"External adjustment activated via input S4","info":"","unit":"","min":"0","max":"0"},
