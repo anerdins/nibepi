@@ -21,8 +21,8 @@ RS485 HAT:<br>
 https://thepihut.com/products/rs485-pizero?variant=26469099976<br>
 https://www.kiwi-electronics.nl/rs-485-pi<br>
 https://www.abelectronics.co.uk/p/77/rs485-pi<br>
-https://www.m.nu/utbyggnadskort/wide-input-shim-kit<br>
 12V HAT:<br>
+https://www.m.nu/utbyggnadskort/wide-input-shim-kit<br>
 https://thepihut.com/products/wide-input-shim<br>
 https://www.kiwi-electronics.nl/wide-input-shim<br>
 https://www.electrokit.com/produkt/wide-input-shim-3-16v/<br>
@@ -51,24 +51,25 @@ network={
 
 ```
 Installera NibePi
-Steg 1: Ta bort den övre luckan där luftfiltret sitter (Gäller endast vid frånluftspumpar).
-Steg 2: Skruva bort de två stora torx T30 skruvarna längst ner i botten på fronten.
-Steg 3: Luta ut fronten i nederkant 10-20 cm och lyft fronten uppåt (Den hänger på en skena i ovankant.
-Steg 4: Ställ undan fronten.
-Steg 5: Ta bort det lilla snäpplocket enl. bild nedan
+Steg 1: Stäng av strömmen till pannan!!!
+Steg 2: Ta bort den övre luckan där luftfiltret sitter (Gäller endast vid frånluftspumpar).
+Steg 3: Skruva bort de två stora torx T30 skruvarna längst ner i botten på fronten.
+Steg 4: Luta ut fronten i nederkant 10-20 cm och lyft fronten uppåt (Den hänger på en skena i ovankant.
+Steg 5: Ställ undan fronten.
+Steg 6: Ta bort det lilla snäpplocket enl. bild nedan
 ```
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_1.jpg)
 ```
-Steg 6: Anslut NibePi enl. bild nedan.
+Steg 7: Anslut NibePi enl. bild nedan.
 Inkopplingen kan skilja sig från olika värmepumpar https://www.nibe.fi/nibedocuments/15050/031725-6.pdf 
 ```
 ![alt text](https://github.com/bebben88/NibePi/blob/master/pics/nibepi_2.jpg)
 ```
-Steg 7: Stoppa in SD-kortet. Starta värmepumpen med fronten av så länge.
+Steg 8: Stoppa in SD-kortet. Starta värmepumpen med fronten av så länge.
 ```
 ```
 Aktivera Modbus i Värmepumpen.
-Steg 1: Håll in bakåt knappen i ca 7 sekunder, en service meny kommer upp, gå in i den.
+Steg 1: Håll in bakåt-knappen i ca 7 sekunder, en service meny kommer upp, gå in i den.
 Steg 2: Gå in i meny 5.2 Systeminställningar ( I vissa pumpar är det ytterligare ett menyval )
 Steg 3: Nästan längst ner i den menyn bockar man för "Modbus".
 Steg 4: Pumpen kan nu börja lysa rött om NibePi inte har startat ordentligt än, vilket kan ta några minuter.
